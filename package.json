@@ -1,0 +1,35 @@
+{
+  "name": "mern",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "server": "node server.js",
+    "client": "node scripts/start-client.js",
+    "start": "concurrently \"nodemon server.js\" \"npm run client\"",
+    "build": "node scripts/build.js",
+    "seed": "node scripts/seedDB.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^3.5.0",
+    "nodemon": "^1.11.0"
+  },
+  "dependencies": {
+    "axios": "^0.16.2",
+    "body-parser": "^1.17.2",
+    "bootbox": "^4.4.0",
+    "cheerio": "^1.0.0-rc.2",
+    "elemental": "^0.6.1",
+    "express": "^4.15.4",
+    "mongoose": "^4.11.7",
+    "react-cookie": "^3.0.8",
+    "react-modal": "^3.1.2",
+    "react-number-format": "^4.0.5",
+    "react-router": "^4.2.0",
+    "react-router-dom": "^4.1.2",
+    "request": "^2.83.0"
+  }
+}
