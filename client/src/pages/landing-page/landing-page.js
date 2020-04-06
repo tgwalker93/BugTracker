@@ -10,14 +10,17 @@ class LandingPage extends Component {
         firstName: "",
         lastName: "",
         emailAddress: "",
+        password: "",
         phoneNumber: "",
         guestCount: "",
         formErrors: {firstName: "", lastName: "", emailAddress:"", phoneNumber:"", guestCount:""},
         firstNameValid: false,
         lastNameValid: false,
+        passwordValid: false,
         emailAddressValid: false,
         phoneNumberValid: false,
-        guestCountValid: false
+        guestCountValid: false,
+        isLogin: true
 
     };
     }
@@ -101,6 +104,12 @@ class LandingPage extends Component {
         this.validateFields();
     };
 
+
+    createAccount = event => {
+        event.preventDefault();
+        this.setState({isLogin: false});
+    };
+
     setCookieAndChangePage() {
 
         //This function will be called once all fields are validated. If any are not valid, the binary "valid" variable will be false.
@@ -129,36 +138,43 @@ class LandingPage extends Component {
 
                     <hr id="hline"></hr>
                     <Col id="formCol" size="sm-6">
-                        <h1 id="formHeader">Create Account</h1>
+                        <h1>BugSlayer</h1>
+                        {/* <h1 id="formHeader">Login</h1> */}
+
+                        {this.state.isLogin ?
+
+                            <h1 id="formHeader">Login</h1>
+                            :
+                            
+                            <h1 id="formHeader">Create Account</h1>
+
+                        }
                         <form>
-                        <p>First Name</p>
-                        <Input onBlur={this.formatInput.bind(this)} isvalid={this.state.firstNameValid.toString()} fielderror={this.state.formErrors.firstName} formgroupclass={`form-group ${this.errorClass(this.state.formErrors.firstName)}`} value={this.state.firstName} id="firstName" onChange={this.handleChange.bind(this)} name="firstName"></Input>
 
+                        {this.state.isLogin ? 
 
-                        <p>Last Name</p>
-                        <Input onBlur={this.formatInput.bind(this)} isvalid={this.state.lastNameValid.toString()} fielderror={this.state.formErrors.lastName} formgroupclass={`form-group ${this.errorClass(this.state.formErrors.lastName)}`} value={this.state.lastName} id="lastName" onChange={this.handleChange.bind(this)} name="lastName"></Input>
+                                ""
+                        :
+                        
+                               <div>
+                                <p>First Name</p>
+                                <Input onBlur={this.formatInput.bind(this)} isvalid={this.state.firstNameValid.toString()} fielderror={this.state.formErrors.emailAddress} formgroupclass={`form-group ${this.errorClass(this.state.formErrors.emailAddress)}`} value={this.state.emailAddress} id="emailAddress" onChange={this.handleChange.bind(this)} name="emailAddress"></Input>
+                                </div>
+                       
+                        
+                        
+                 }
+                    
 
+                    
                         <p>Email Address</p>
                         <Input onBlur={this.formatInput.bind(this)}isvalid={this.state.emailAddressValid.toString()} fielderror={this.state.formErrors.emailAddress} formgroupclass={`form-group ${this.errorClass(this.state.formErrors.emailAddress)}`} value={this.state.emailAddress} id="emailAddress" onChange={this.handleChange.bind(this)} name="emailAddress"></Input>
 
+                        <p>Password</p>
+                         <Input onBlur={this.formatInput.bind(this)} isvalid={this.state.passwordValid.toString()} fielderror={this.state.formErrors.emailAddress} formgroupclass={`form-group ${this.errorClass(this.state.formErrors.emailAddress)}`} value={this.state.emailAddress} id="emailAddress" onChange={this.handleChange.bind(this)} name="emailAddress"></Input>
 
-                        <p>Phone Number</p>
-                        <Input onBlur={this.formatPhone(this)} isvalid={this.state.phoneNumberValid.toString()} fielderror={this.state.formErrors.phoneNumber} formgroupclass={`form-group ${this.errorClass(this.state.formErrors.phoneNumber)}`} value={this.state.phoneNumber} id="phoneNumber" onChange={this.handleChange.bind(this)} name="phoneNumber"></Input>
-                       
-                        <p>Besides yourself, how many guests will be attending?</p>
-                        <div className={`form-group ${this.errorClass(this.state.formErrors.guestCount)}`}>
-                        <select className="form-control" value={this.state.guestCount} id="guestCount" onChange={this.handleChange.bind(this)}>
-                            <option value={null}>Select</option>
-                            <option value="0">0</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5+">5+</option>
-                        </select>
-                        {this.state.guestCountValid ? "" : <span className="help-block">{this.state.formErrors.guestCount}</span>}
-                        </div>                  
-                        <FormBtn onClick={this.handleFormSubmit.bind(this)}> RSVP </FormBtn>
+                        <FormBtn onClick={this.handleFormSubmit.bind(this)}> Login </FormBtn>
+                        <FormBtn onClick={this.createAccount.bind(this)}> Create Account </FormBtn>
                         </form>
                     </Col>
                 </Row>
