@@ -1,6 +1,13 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const routes = require("./routes");
+const session = require('express-session');
+const mongoose = require("mongoose");
+const MongoStore = require('connect-mongo')(session);
+const dbConnection = require('./db'); // loads our connection to the mongo database
+
+
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 

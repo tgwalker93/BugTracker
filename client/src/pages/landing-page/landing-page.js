@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { Col, Row, Container } from "../../components/Grid";
 import { Input, FormBtn } from "../../components/Form";
 import Cookies from 'universal-cookie';
+import API from "../../utils/API";
 import "./landing-page.css";
 class LandingPage extends Component {
     constructor(props){
@@ -13,7 +14,7 @@ class LandingPage extends Component {
         password: "",
         phoneNumber: "",
         guestCount: "",
-        formErrors: {firstName: "", lastName: "", emailAddress:"", phoneNumber:"", guestCount:""},
+        formErrors: {firstName: "", lastName: "", emailAddress:"", phoneNumber:"", guestCount:"", password:""},
         firstNameValid: false,
         lastNameValid: false,
         passwordValid: false,
@@ -36,6 +37,7 @@ class LandingPage extends Component {
         let lastNameValid = this.state.lastNameValid;
         let phoneNumberValid = this.state.phoneNumberValid;
         let guestCountValid = this.state.guestCountValid;
+        let passwordValid = this.state.passwordValid;
 
         //Validating email using Regex
         let matchArray = this.state.emailAddress.match(/^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i);
@@ -56,6 +58,10 @@ class LandingPage extends Component {
         phoneNumberValid = this.state.phoneNumber.length===16;
         fieldValidationErrors.phoneNumber = phoneNumberValid ? "":"Please provide a phone number";
 
+        //validating password
+        passwordValid = this.state.password.length === 2;
+        fieldValidationErrors.password = passwordValid ? "" : "Please provide a password";
+
         //Validate guest count by checking if user made a selection.
         guestCountValid = true;
         if(this.state.guestCount === "" || this.state.guestCount==="Select"){
@@ -69,7 +75,8 @@ class LandingPage extends Component {
             firstNameValid: firstNameValid,
             lastNameValid: lastNameValid,
             phoneNumberValid: phoneNumberValid,
-            guestCountValid: guestCountValid
+            guestCountValid: guestCountValid,
+            passwordValid: passwordValid
         }, () => {
             this.setCookieAndChangePage();
         });    
@@ -104,12 +111,58 @@ class LandingPage extends Component {
         this.validateFields();
     };
 
+    handleSaveUser = event => {
+            event.preventDefault();
+            this.saveUser();
+
+   
+    }
 
     createAccount = event => {
         event.preventDefault();
         this.setState({isLogin: false});
+
     };
 
+
+    saveUser() {
+        console.log("HELLO?!?!!?!");
+        console.log(this.state.passwordValid + " passwordvalid?");
+        // if (this.state.passwordValid && this.state.firstNameValid && this.state.lastNameValid) {
+
+            console.log("we good");
+            let userObj = {
+                userId: null,
+                username: this.state.username,
+                password: this.state.password,
+                email: this.state.emailAddress,
+                user_email: this.state.email,
+                firstName: this.state.firstName,
+                lastName: this.state.lastName,
+                user_address: this.state.address,
+                user_city: this.state.city,
+                user_state: this.state.state,
+                user_zip: this.state.zip
+            }
+            API.saveUser(userObj)
+                .then(response => {
+
+
+
+                    if (!response.data.error) {
+                        // userObj.userId = response.data.doc._id;
+                        // this.props._login(this.state.username, this.state.password, userObj);
+                        // this.setState({
+                        //     redirectTo: '/profile'
+                        // })
+                        console.log("I WAS SUCCESSFUL FROM LANDING PAGE");
+                    } else {
+                        this.setState({ errorResponse: response })
+                    }
+                })
+
+        // }
+    }
     setCookieAndChangePage() {
 
         //This function will be called once all fields are validated. If any are not valid, the binary "valid" variable will be false.
@@ -157,12 +210,15 @@ class LandingPage extends Component {
                         :
                         
                                <div>
-                                <p>First Name</p>
-                                <Input onBlur={this.formatInput.bind(this)} isvalid={this.state.firstNameValid.toString()} fielderror={this.state.formErrors.emailAddress} formgroupclass={`form-group ${this.errorClass(this.state.formErrors.emailAddress)}`} value={this.state.emailAddress} id="emailAddress" onChange={this.handleChange.bind(this)} name="emailAddress"></Input>
+                                    <p>First Name</p>
+                                    <Input onBlur={this.formatInput.bind(this)} isvalid={this.state.firstNameValid.toString()} fielderror={this.state.formErrors.firstName} formgroupclass={`form-group ${this.errorClass(this.state.formErrors.firstName)}`} value={this.state.firstName} id="firstName" onChange={this.handleChange.bind(this)} name="firstName"></Input>
+                            
+                            
+                                    <p>Last Name</p>
+                                    <Input onBlur={this.formatInput.bind(this)} isvalid={this.state.lastNameValid.toString()} fielderror={this.state.formErrors.lastName} formgroupclass={`form-group ${this.errorClass(this.state.formErrors.lastName)}`} value={this.state.lastName} id="lastName" onChange={this.handleChange.bind(this)} name="lastName"></Input>
+                            
                                 </div>
-                       
-                        
-                        
+   
                  }
                     
 
@@ -171,10 +227,11 @@ class LandingPage extends Component {
                         <Input onBlur={this.formatInput.bind(this)}isvalid={this.state.emailAddressValid.toString()} fielderror={this.state.formErrors.emailAddress} formgroupclass={`form-group ${this.errorClass(this.state.formErrors.emailAddress)}`} value={this.state.emailAddress} id="emailAddress" onChange={this.handleChange.bind(this)} name="emailAddress"></Input>
 
                         <p>Password</p>
-                         <Input onBlur={this.formatInput.bind(this)} isvalid={this.state.passwordValid.toString()} fielderror={this.state.formErrors.emailAddress} formgroupclass={`form-group ${this.errorClass(this.state.formErrors.emailAddress)}`} value={this.state.emailAddress} id="emailAddress" onChange={this.handleChange.bind(this)} name="emailAddress"></Input>
+                            <Input onBlur={this.formatInput.bind(this)} isvalid={this.state.passwordValid.toString()} fielderror={this.state.formErrors.password} formgroupclass={`form-group ${this.errorClass(this.state.formErrors.password)}`} value={this.state.password} id="password" onChange={this.handleChange.bind(this)} name="password"></Input>
 
                         <FormBtn onClick={this.handleFormSubmit.bind(this)}> Login </FormBtn>
                         <FormBtn onClick={this.createAccount.bind(this)}> Create Account </FormBtn>
+                        <FormBtn onClick={this.handleSaveUser.bind(this)}> Submit </FormBtn>
                         </form>
                     </Col>
                 </Row>
