@@ -1,0 +1,19 @@
+.BugTrackerTitle {
+    text-align: center;
+}
+#containerViewBugs {
+    margin: 50px;
+}
+
+#bugViewTable_head {
+    background-color: gray;
+}
+
+.bugViewTable_td {
+    background-color: lightgray;
+}
+
+
+.bugViewTable_Table, .bugViewTable_th, .bugViewTable_td {
+      border: 1px solid black !important;
+}
