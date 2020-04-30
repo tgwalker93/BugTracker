@@ -5,6 +5,9 @@ import { Input, FormBtn } from "../../components/Form";
 import Cookies from 'universal-cookie';
 import API from "../../utils/API";
 import "./bug-view.css";
+import Modal from "react-bootstrap/Modal";
+// import "bootstrap/dist/css/bootstrap.min.css";
+
 class BugViewPage extends Component {
     constructor(props) {
         super(props)
@@ -23,11 +26,17 @@ class BugViewPage extends Component {
             phoneNumberValid: false,
             guestCountValid: false,
             isLogin: true,
+            showModal: false,
             sampleBugViewTableData: [{ id: "1", BugTitle: "Title A", BugDescription: "Test A" }, { id: "2", BugTitle: "Title B", BugDescription: "Test B" }, { id: "3", BugTitle:"Title C", BugDescription: "Test C"}]
-
+ 
         };
     }
 
+    delta = () => {
+        this.setState({
+            count: this.state.count + 1
+        });
+    }
     handleChange(e) {
         this.setState({ [e.target.id]: e.target.value });
     }
@@ -78,6 +87,15 @@ class BugViewPage extends Component {
 
     };
 
+
+    closeModal = () => {
+        this.setState({ showModal: false });
+    }
+
+    openModal = () => {
+        this.setState({ showModal: true });
+    }
+
     render() {
         return (
              <Container id="containerViewBugs" fluid="true">
@@ -120,7 +138,30 @@ class BugViewPage extends Component {
                                 <br />
                                     <br />
                         <FormBtn type="button" className="btn btn-primary">Create New Bug</FormBtn>
-              
+
+                       
+                       
+                       
+                       
+                        <button variant="primary" onClick={this.openModal}>
+                            Launch demo modal
+                                </button> 
+
+                        <Modal show={this.state.showModal} animation={false}>
+                            <Modal.Header>
+                                <Modal.Title>Modal heading</Modal.Title>
+                            </Modal.Header>
+                            <Modal.Body>Woohoo, you're reading this text in a modal!</Modal.Body>
+                            <Modal.Footer>
+                                <FormBtn variant="secondary" onClick={this.closeModal}>
+                                    Close
+                                  </FormBtn>
+                                <FormBtn variant="primary" onClick={this.saveBug}>
+                                    Save Changes
+                              </FormBtn>
+                            </Modal.Footer>
+                        </Modal>
+
                     </Col>
                 </Row>
 

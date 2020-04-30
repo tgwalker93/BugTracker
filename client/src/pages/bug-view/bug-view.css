@@ -17,3 +17,9 @@
 .bugViewTable_Table, .bugViewTable_th, .bugViewTable_td {
       border: 1px solid black !important;
 }
+
+/* React Modal "fade in ability" adds a "backdrop" that defaults to a 100% black screen for some reason */
+.modal-backdrop {
+    display:none !important;
+
+}
