@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { Col, Row, Container } from "../../components/Grid";
-import { Input, FormBtn } from "../../components/Form";
+import { Input, Button } from "../../components/Form";
 import Cookies from 'universal-cookie';
 import API from "../../utils/API";
 import "./landing-page.css";
@@ -229,9 +229,9 @@ class LandingPage extends Component {
                         <p>Password</p>
                             <Input onBlur={this.formatInput.bind(this)} isvalid={this.state.passwordValid.toString()} fielderror={this.state.formErrors.password} formgroupclass={`form-group ${this.errorClass(this.state.formErrors.password)}`} value={this.state.password} id="password" onChange={this.handleChange.bind(this)} name="password"></Input>
 
-                        <FormBtn onClick={this.handleFormSubmit.bind(this)}> Login </FormBtn>
-                        <FormBtn onClick={this.createAccount.bind(this)}> Create Account </FormBtn>
-                        <FormBtn onClick={this.handleSaveUser.bind(this)}> Submit </FormBtn>
+                            <Button onClick={this.handleFormSubmit.bind(this)}> Login </Button>
+                            <Button onClick={this.createAccount.bind(this)}> Create Account </Button>
+                            <Button onClick={this.handleSaveUser.bind(this)}> Submit </Button>
                         </form>
                     </Col>
                 </Row>

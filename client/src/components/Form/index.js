@@ -1,2 +1,3 @@
 export * from "./Input";
-export * from "./FormBtn";
+export * from "./Button";
+export * from "./TextArea";

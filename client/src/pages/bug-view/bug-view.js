@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { Col, Row, Container } from "../../components/Grid";
 import { BugListTableRow } from "../../components/BugListTableRow";
-import { Input, FormBtn } from "../../components/Form";
+import { Input, Button, TextArea } from "../../components/Form";
 import Cookies from 'universal-cookie';
 import API from "../../utils/API";
 import "./bug-view.css";
@@ -26,9 +26,14 @@ class BugViewPage extends Component {
             phoneNumberValid: false,
             guestCountValid: false,
             isLogin: true,
+            currentModalTitle: "Edit Bug",
+            currentBugIndex: 0,
             showModal: false,
-            sampleBugViewTableData: [{ id: "1", BugTitle: "Title A", BugDescription: "Test A" }, { id: "2", BugTitle: "Title B", BugDescription: "Test B" }, { id: "3", BugTitle:"Title C", BugDescription: "Test C"}]
- 
+            showModal2: false,
+            sampleBugViewTableData: [{ id: "1", bugTitle: "Title A", bugDescription: "Test A" }, { id: "2", bugTitle: "Title B", bugDescription: "Test B" }, { id: "3", bugTitle: "Title C", bugDescription: "Test C"}],
+            bugData: [{ id: "empty", bugTitle: "empty", bugDescription: "empty" }],
+            bugTitle: "",
+            bugDescription: ""
         };
     }
 
@@ -74,12 +79,6 @@ class BugViewPage extends Component {
         this.validateFields();
     };
 
-    handleSaveUser = event => {
-        event.preventDefault();
-        this.saveUser();
-
-
-    }
 
     createAccount = event => {
         event.preventDefault();
@@ -94,6 +93,48 @@ class BugViewPage extends Component {
 
     openModal = () => {
         this.setState({ showModal: true });
+    }
+
+    editBugButton = () => {
+        this.setState({ showModal: true, currentModalTitle: "Edit Bug" });
+    }
+
+    updateBug = () => {
+        console.log("hello: ");
+        console.log(this.state.bugData[this.state.currentBugIndex]);
+        this.state.bugData[this.state.currentBugIndex].bugDescription = "hello?"
+        console.log(this.state.bugData[this.state.currentBugIndex])
+        let bugObj = {
+            bugTitle: this.state.bugTitle,
+            bugDescription: this.state.bugDescription
+        }
+        console.log("I'm in updateBug");
+        console.log("here is state");
+        console.log(this.state);
+        console.log("here is this");
+        console.log(this);
+        API.saveBug(bugObj)
+            .then(response => {
+
+
+
+                if (!response.data.error) {
+                    // userObj.userId = response.data.doc._id;
+                    // this.props._login(this.state.username, this.state.password, userObj);
+                    // this.setState({
+                    //     redirectTo: '/profile'
+                    // })
+                    console.log("I WAS SUCCESSFUL FROM Bug View PAGE");
+                } else {
+                    this.setState({ errorResponse: response })
+                }
+            })
+    }
+    createNewBugButton = () => {
+        this.state.bugData.push({ id: "", bugTitle: "", bugDescription: ""})
+        this.setState({ showModal: true, currentModalTitle: "Create Bug", currentBugIndex: this.state.bugData.length-1 });
+        // console.log(this.state.this.state.currentBugIndex);
+        // console.log(this.state.bugData[this.data.currentBugIndex]);
     }
 
     render() {
@@ -122,47 +163,60 @@ class BugViewPage extends Component {
                                             <tr>
                                     <th className="bugViewTable_th" scope="col">Bug Title</th>
                                     <th className="bugViewTable_th" scope="col">Bug Description</th>
+                                    <th className="bugViewTable_th" scope="col"></th>
                                             </tr>
                                 </thead>
                                         <tbody>
-                                           
                                     {console.log(this.state.sampleBugViewTableData)}
                                 {this.state.sampleBugViewTableData.map(tableRowData => {
-                                    return (
-                                        <BugListTableRow key={tableRowData.id} BugTitle={tableRowData.BugTitle} BugDescription={tableRowData.BugDescription}>
-                                        </BugListTableRow>
-                                    );
+                                    return(
+                                            <tr className="bugViewTable_tr" key={tableRowData.id}>
+                                                <td className="bugViewTable_td">{tableRowData.bugTitle}</td>
+                                                <td className="bugViewTable_td">{tableRowData.bugDescription}</td>
+                                            <td id="editColumn" className="bugViewTable_td">                                
+                                                <Button variant="primary" onClick={this.editBugButton}>
+                                                    Edit
+                                            </Button>
+                                            </td>
+                                            </tr>
+                                    )
                                 })}
-
-
                                     </tbody>
                                     </table>
                                 <br />
                                     <br />
-                        <FormBtn type="button" className="btn btn-primary">Create New Bug</FormBtn>
+                        <Button type="button" className="btn btn-primary" onClick={this.createNewBugButton}>Create New Bug</Button>
 
                        
                        
                        
-                       
-                        <button variant="primary" onClick={this.openModal}>
-                            Launch demo modal
-                                </button> 
-
+                
+                        {/* This modal will pop up for editing bugs! */}
                         <Modal show={this.state.showModal} animation={false}>
                             <Modal.Header>
-                                <Modal.Title>Modal heading</Modal.Title>
+                                <Modal.Title>{this.state.currentModalTitle}</Modal.Title>
                             </Modal.Header>
-                            <Modal.Body>Woohoo, you're reading this text in a modal!</Modal.Body>
+                            <Modal.Body>
+
+                                <p>Bug Title</p>
+                                <Input onBlur={this.formatInput.bind(this)} value={this.state.bugTitle} id="bugTitle" onChange={this.handleChange.bind(this)} name="bugTitle" />
+
+
+                                <TextArea label="Bug Description" onBlur={this.formatInput.bind(this)} value={this.state.bugDescription} id="bugDescription" onChange={this.handleChange.bind(this)} name="bugDescription" />
+
+                            </Modal.Body>
                             <Modal.Footer>
-                                <FormBtn variant="secondary" onClick={this.closeModal}>
+                                <Button variant="secondary" onClick={this.closeModal}>
                                     Close
-                                  </FormBtn>
-                                <FormBtn variant="primary" onClick={this.saveBug}>
+                                  </Button>
+                                <Button variant="primary" onClick={this.updateBug}>
                                     Save Changes
-                              </FormBtn>
+                              </Button>
                             </Modal.Footer>
                         </Modal>
+
+
+                                
 
                     </Col>
                 </Row>
