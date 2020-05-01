@@ -111,7 +111,9 @@ class BugViewPage extends Component {
                          <select>
                             <option value=""></option>
                             <option value="Tyler">Tyler</option>
-                            <option value="Brian">Brian</option>
+                            <option value="Brian">Tawny</option>
+                            <option value="Brian">Anthony</option>
+                            <option value="Brian">Arthur</option>
 	                    </select>
                             <br />
                                 <br />
