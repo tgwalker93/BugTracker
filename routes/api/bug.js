@@ -2,8 +2,28 @@ var path = require('path');
 var request = require("request");
 var express = require("express");
 var app = express.Router();
-//models 
-var User = require("../../db/models/bug.js");
+
+//Database Models 
+var Bug = require("../../db/models/bug.js");
+
+//Getting bugs from the Database!
+app.get("/getAllBugs", function (req, res) {
+
+    Bug.find()
+    .then(function(doc, error){
+        // Log any errors
+        if (error) {
+            console.log("getUserData back-end failed!")
+            console.log(error);
+        }
+        // Or send the doc to the browser as a json object
+        else {
+            console.log("getUserData back-end was successful!");
+            res.json(doc);
+        }
+    })
+
+})
 
 //Save a bug to the Database! 
 app.post("/saveBug", function (req, res) {
@@ -44,7 +64,7 @@ app.post("/saveBug", function (req, res) {
     };
     console.log(resultObj);
 
-    var entry = new User(resultObj);
+    var entry = new Bug(resultObj);
 
     console.log("here is bug");
     console.log(entry);

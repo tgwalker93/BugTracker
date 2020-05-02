@@ -20,6 +20,14 @@ const BugSchema = new Schema({
             type: String,
             required: false
         },
+        stepsToRecreate: {
+            type: String,
+            required: false
+        },
+        status: {
+            type: String,
+            required: false
+        },
         subTasks: {
             type: Object,
             required: false

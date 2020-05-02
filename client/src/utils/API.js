@@ -14,5 +14,10 @@ export default {
         //return axios.post("/api/users/saveUser", userData)
         return axios.post("/api/bug/saveBug", bugData);
     },
+    getAllBugs: function() {
+        //TODO - Set up organization ID query
+        //Query db to get all bugs
+        return axios.get("/api/bug/getAllBugs")
+    }
 
 };

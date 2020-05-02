@@ -23,6 +23,10 @@ const UserSchema = new Schema({
         lastName: {
             type: String,
             required: true
+        },
+        organizations: {
+            type: Array,
+            required: false,
         }
 }});
 
