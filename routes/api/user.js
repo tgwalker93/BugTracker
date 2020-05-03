@@ -11,15 +11,11 @@ app.post("/saveUser", function (req, res) {
     console.log("I'm in save user post")
     console.log(req.body);
     var resultObj = {
-        properties:
-            {
                 email: req.body.email,
                 password: req.body.password,
                 username: "EMPTY",
                 firstName: req.body.firstName,
                 lastName: req.body.lastName
-            }
-
     };
     console.log(resultObj);
 

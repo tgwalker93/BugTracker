@@ -3,7 +3,6 @@ const Schema = mongoose.Schema
 mongoose.promise = Promise
 
 const BugSchema = new Schema({
-    properties: {
         bugTitle: {
             type: String,
             required: true
@@ -32,7 +31,6 @@ const BugSchema = new Schema({
             type: Object,
             required: false
         }
-    }
 });
 
 // Define schema methods
@@ -60,7 +58,7 @@ const BugSchema = new Schema({
 
 BugSchema.index({ '$**': 'text' });
 
-// Create reference to User & export
+// Create reference to Bug & export
 const Bug = mongoose.model("Bug", BugSchema);
 module.exports = Bug
 

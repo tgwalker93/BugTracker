@@ -3,7 +3,6 @@ const Schema = mongoose.Schema
 mongoose.promise = Promise
 
 const UserSchema = new Schema({
-    properties: {
         email: {
             type: String,
             required: true
@@ -28,7 +27,7 @@ const UserSchema = new Schema({
             type: Array,
             required: false,
         }
-}});
+});
 
 // Define schema methods
 // UserSchema.methods = {

@@ -8,6 +8,10 @@ import "./bug-view.css";
 import Modal from "react-bootstrap/Modal";
 // import "bootstrap/dist/css/bootstrap.min.css";
 
+var testObj = {
+
+}
+
 class BugViewPage extends Component {
     constructor(props) {
         super(props)
@@ -26,6 +30,8 @@ class BugViewPage extends Component {
             phoneNumberValid: false,
             guestCountValid: false,
             isLogin: true,
+            isNewBug: false,
+            selectedBug: "",
             currentModalTitle: "Edit Bug",
             currentBugIndex: 0,
             showModal: false,
@@ -70,23 +76,16 @@ class BugViewPage extends Component {
     };
 
 
-    closeModal = () => {
-        this.setState({ showModal: false });
-    }
-
-
-    // MAKE DB UPDATE ON EDIT BUTTOn. Currently, each edit modal is not bound to bug Object.
-    editBugButton = () => {
-        this.setState({ showModal: true, currentModalTitle: "Edit Bug" });
-    }
-
-    updateOrCreateBug = () => {
+    //************************** DB METHODS ************** THESE METHODS SAVE, EDIT, GET BUGS FROM DB *******************************************
+    saveNewBugInDB = () => {
 
         let bugObj = {
+            id: this.state.bugData.length,
+            mongoID: this.state.bugData.length,
+            currentBugIndex: this.state.bugData.length,
             bugTitle: this.state.bugTitleInModal,
             bugDescription: this.state.bugDescriptionInModal
-         }
-        
+        }
         API.saveBug(bugObj)
             .then(response => {
 
@@ -94,45 +93,111 @@ class BugViewPage extends Component {
 
                 if (!response.data.error) {
                     console.log("I WAS SUCCESSFUL Saving Bug FROM Bug View PAGE");
+
+                    //Grabbing new ID from DB
+                    bugObj.mongoID = response.data.doc._id;
+
+                    console.log(bugObj);
+
+
                     this.setState({ showModal: false });
+                    this.state.bugData.push(bugObj);
                     this.forceUpdate();
                 } else {
                     this.setState({ errorResponse: response })
                 }
             })
     }
-    createNewBugButton = () => {
-        this.setState({ showModal: true, currentModalTitle: "Create Bug", isCreateBug: true });
-    }
 
+    updateBugInDB = () => {
+        API.updateBug(this.state.selectedBug)
+            .then(response => {
+
+                if (!response.data.error) {
+                    console.log("I WAS SUCCESSFUL Saving Bug FROM Bug View PAGE");
+
+                    this.setState({ showModal: false });
+                    this.state.bugData[this.state.currentBugIndex] = this.state.selectedBug;
+                    this.forceUpdate();
+                } else {
+                    this.setState({ errorResponse: response })
+                }
+            })
+    }
     getBugsFromDB() {
         API.getAllBugs()
-        .then(response => {
-            if (!response.data.error) {
-                console.log("SUCCESSFULLY GOT BUGS FROM DB");
-                var bugs = [];
-                //Loop through bug data received from the server.
-                for(var i=0; i<response.data.length; i++){
-                    bugs.push({
-                        mongoID: response.data[this.state.currentBugIndex]._id,
-                        id: this.state.currentBugIndex,     
-                        bugTitle: response.data[this.state.currentBugIndex].properties.bugTitle, 
-                        bugDescription: response.data[this.state.currentBugIndex].properties.bugDescription})
-                         this.setState({ currentBugIndex: this.state.currentBugIndex+1 });
+            .then(response => {
+                if (!response.data.error) {
+                    console.log("SUCCESSFULLY GOT BUGS FROM DB");
+                    var bugs = [];
+                    //Loop through bug data received from the server.
+                    for (var i = 0; i < response.data.length; i++) {
+                        console.log("bug " + i);
+                        bugs.push({
+                            mongoID: response.data[this.state.currentBugIndex]._id,
+                            id: this.state.currentBugIndex,
+                            bugTitle: response.data[this.state.currentBugIndex].bugTitle,
+                            bugDescription: response.data[this.state.currentBugIndex].bugDescription
+                        })
+                        this.setState({ currentBugIndex: this.state.currentBugIndex + 1 });
+                        console.log(bugs);
+                    }
+                    this.setState({ bugData: bugs });
+                    console.log("IF IM HEre THEN THE DATA JUST UPDATED!!!!");
+                    this.forceUpdate();
+                    console.log("Here is bug data!");
+                    console.log(bugs);
+                } else {
+                    this.setState({ errorResponse: response })
                 }
-                 this.setState({bugData: bugs});
-                 console.log("Here is bug data!");
-                 console.log(bugs);
-            } else {
-                this.setState({ errorResponse: response })
-            }
-        }).catch(err => console.log(err));
+            }).catch(err => console.log(err));
+    }
+    // ****************** END OF DB METHODS*******************************************
+
+
+    //************************THESE METHODS ARE CALLED FROM BUTTONS WITHIN THE MODAL*********************
+    updateOrCreateBug = () => {
+        if (this.state.isNewBug){
+            this.saveNewBugInDB();
+        } else {
+            //UPDATE THE BUG DATA LOCALLY BEFORE PUSHING TO DB
+            this.state.bugData[this.state.currentBugIndex].bugTitle = this.state.bugTitleInModal;
+            this.state.bugData[this.state.currentBugIndex].bugDescription = this.state.bugDescriptionInModal;
+            this.setState({selectedBug: this.state.bugData[this.state.currentBugIndex]});
+            this.updateBugInDB();
+        }
+    }
+    closeModal = () => {
+        this.setState({ showModal: false, bugTitleInModal:"", bugDescriptionInModal: "" });
+    }
+    //*********************** END OF MODAL BUTTON CLICK METHODS ****************************
+
+
+    // ******************** THESE METHODS ARE CALLED WHEN CREATE/EDIT BUTTONS ARE FIRST CLICKED ******************
+    editBugButton(bugClickedOn) {
+        console.log("Edit bug clicked on !!!");
+        console.log(bugClickedOn);
+        this.setState({ showModal: true, 
+            currentModalTitle: "Edit Bug",
+            currentBugIndex: bugClickedOn.id,
+            bugTitleInModal: bugClickedOn.bugTitle, 
+            bugDescriptionInModal: bugClickedOn.bugDescription, 
+            isNewBug: false, 
+            selectedBug: bugClickedOn });
     }
 
-    componentWillMount() {
+    createNewBugButton = () => {
+        this.setState({ showModal: true, currentModalTitle: "Create Bug", isNewBug: true, bugTitleInModal: "", bugDescriptionInModal: "" });
+    }
+    // ******************** END OF INITIAL BUTTON CLICK METHODS ******************
+
+
+
+    //CALLS THIS WHEN THE COMPONENT MOUNTS, basically "on page load"
+    componentDidMount() {
+        console.log("Component Did Mount has been called");
         this.getBugsFromDB();
     } 
-
 
     render() {
         return (
@@ -166,11 +231,11 @@ class BugViewPage extends Component {
                                         <tbody>
                                     {this.state.bugData.map(bug => {
                                     return(
-                                        <tr className="bugViewTable_tr" key={bug.mongoID}>
+                                        <tr className="bugViewTable_tr" key={bug.id}>
                                             <td className="bugViewTable_td">{bug.bugTitle}</td>
                                             <td className="bugViewTable_td">{bug.bugDescription}</td>
-                                            <td id="editColumn" className="bugViewTable_td">                                
-                                                <Button variant="primary" onClick={this.editBugButton}>
+                                            <td id="editColumn" className="bugViewTable_td">                            
+                                                <Button variant="primary" onClick={() => this.editBugButton(bug)}>
                                                     Edit
                                             </Button>
                                             </td>
