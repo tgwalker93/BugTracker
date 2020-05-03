@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
+const bcrypt = require('bcryptjs')
 mongoose.promise = Promise
 
 const UserSchema = new Schema({
@@ -29,27 +30,31 @@ const UserSchema = new Schema({
         }
 });
 
-// Define schema methods
-// UserSchema.methods = {
-//     checkPassword: function (inputPassword) {
-//         return bcrypt.compareSync(inputPassword, this.properties.password)
-//     },
-//     hashPassword: plainTextPassword => {
-//         return bcrypt.hashSync(plainTextPassword, 10)
-//     }
-// }
+//Define schema methods
+UserSchema.methods = {
+    checkPassword: function (inputPassword) {
+        // console.log("i'm in User DB Modal and below is input password vs password in DB");
+        // console.log("inputpassword: " + inputPassword);
+        // console.log(this.password);
+        // console.log(bcrypt.compareSync(inputPassword, this.password));
+        // return bcrypt.compareSync(inputPassword, this.password)
+    },
+    hashPassword: plainTextPassword => {
+        return bcrypt.hashSync(plainTextPassword, 10)
+    }
+}
 
-// Define hooks for pre-saving
-// UserSchema.pre('save', function (next) {
-//     if (!this.properties.password) {
-//         console.log('=======NO PASSWORD PROVIDED=======')
-//         next()
-//     } else {
-//         this.properties.password = this.hashPassword(this.properties.password)
-//         next()
-//     }
+//Define hooks for pre-saving
+UserSchema.pre('save', function (next) {
+    if (!this.properties.password) {
+        console.log('=======NO PASSWORD PROVIDED=======')
+        next()
+    } else {
+        this.properties.password = this.hashPassword(this.properties.password)
+        next()
+    }
 
-// })
+})
 
 
 UserSchema.index({ '$**': 'text' });

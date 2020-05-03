@@ -1,7 +1,16 @@
 import axios from "axios";
 
 export default {
-
+    user: function () {
+        console.log("i'm in API.js file, calling user");
+        return axios.get("/api/user");
+    },
+    login: function (userData) {
+        console.log("LoginAPI")
+        console.log(userData);
+        // return axios.get("/api/user/login");
+        return axios.post("/api/user/login", userData)
+    },
     saveUser: function (userData) {
         console.log("I'm in the API file");
         console.log(userData);

@@ -8,10 +8,6 @@ import "./bug-view.css";
 import Modal from "react-bootstrap/Modal";
 // import "bootstrap/dist/css/bootstrap.min.css";
 
-var testObj = {
-
-}
-
 class BugViewPage extends Component {
     constructor(props) {
         super(props)

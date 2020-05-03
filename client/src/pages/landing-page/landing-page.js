@@ -3,6 +3,8 @@ import { Col, Row, Container } from "../../components/Grid";
 import { Input, Button } from "../../components/Form";
 import Cookies from 'universal-cookie';
 import API from "../../utils/API";
+import { Redirect } from 'react-router-dom'
+
 import "./landing-page.css";
 class LandingPage extends Component {
     constructor(props){
@@ -15,6 +17,7 @@ class LandingPage extends Component {
         phoneNumber: "",
         guestCount: "",
         formErrors: {firstName: "", lastName: "", emailAddress:"", phoneNumber:"", guestCount:"", password:""},
+        redirectTo: null,
         firstNameValid: false,
         lastNameValid: false,
         passwordValid: false,
@@ -108,7 +111,11 @@ class LandingPage extends Component {
 
     handleFormSubmit = event => {
         event.preventDefault();    
-        this.validateFields();
+        //this.validateFields();
+        this.props._login(this.state.emailAddress, this.state.password)
+        this.setState({
+            redirectTo: '/profile'
+        })
     };
 
     handleSaveUser = event => {
@@ -183,7 +190,16 @@ class LandingPage extends Component {
         }
     }
 
+    componentDidMount() {
+        console.log("component has mounted");
+        console.log(this);
+    }
+
     render() {
+
+        if (this.state.redirectTo) {
+            return <Redirect to={{ pathname: this.state.redirectTo }} />
+        } else {
         return (
             <Container id="container" fluid="true">
 
@@ -238,6 +254,8 @@ class LandingPage extends Component {
 
             </Container>
         );
+
+                }
     }
 }
 
