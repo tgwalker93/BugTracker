@@ -4,6 +4,7 @@ import { Input, Button } from "../../components/Form";
 import Cookies from 'universal-cookie';
 import API from "../../utils/API";
 import { Redirect } from 'react-router-dom'
+import { withRouter } from 'react-router';
 
 import "./landing-page.css";
 class LandingPage extends Component {
@@ -17,7 +18,7 @@ class LandingPage extends Component {
         phoneNumber: "",
         guestCount: "",
         formErrors: {firstName: "", lastName: "", emailAddress:"", phoneNumber:"", guestCount:"", password:""},
-        redirectTo: null,
+          redirectTo: null,
         firstNameValid: false,
         lastNameValid: false,
         passwordValid: false,
@@ -112,10 +113,14 @@ class LandingPage extends Component {
     handleFormSubmit = event => {
         event.preventDefault();    
         //this.validateFields();
-        this.props._login(this.state.emailAddress, this.state.password)
-        this.setState({
-            redirectTo: '/profile'
-        })
+         this.props._login(this.state.emailAddress, this.state.password)
+            // console.log("HANDLE FORM SUBMIT FROM LOGIN HERE IS RESPONSE");
+            // console.log(response);
+            // this.setState({
+            //     redirectTo: '/profile'
+            // })
+
+      
     };
 
     handleSaveUser = event => {
@@ -194,11 +199,15 @@ class LandingPage extends Component {
         console.log("component has mounted");
         console.log(this);
     }
+    componentDidUpdate() {
 
+    }
     render() {
 
-        if (this.state.redirectTo) {
-            return <Redirect to={{ pathname: this.state.redirectTo }} />
+        if (this.props.redirectTo) {
+            console.log("THIS . PROPS. REDIRECT EXISTS IN LANDING PAGE!!!");
+            console.log(this.props.redirectTo);
+            return <Redirect to={{ pathname: this.props.redirectTo }} />
         } else {
         return (
             <Container id="container" fluid="true">
@@ -256,7 +265,9 @@ class LandingPage extends Component {
         );
 
                 }
-    }
+    
+            }
 }
 
-export default LandingPage;
+// export default LandingPage;
+export default withRouter(LandingPage)

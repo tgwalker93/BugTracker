@@ -1,12 +1,14 @@
 import React, { Component } from "react";
 import { Col, Row, Container } from "../../components/Grid";
 import { BugListTableRow } from "../../components/BugListTableRow";
+import { Redirect } from 'react-router-dom'
 import { Input, Button, TextArea } from "../../components/Form";
 import Cookies from 'universal-cookie';
 import API from "../../utils/API";
 import "./profile.css";
 import Modal from "react-bootstrap/Modal";
 import { Link } from "react-router-dom";
+import { withRouter } from 'react-router';
 // import "bootstrap/dist/css/bootstrap.min.css";
 
 class Profile extends Component {
@@ -15,13 +17,19 @@ class Profile extends Component {
         this.state = {
             firstName:"",
             loggedIn: this.props.loggedIn,
+            redirectTo: null,
             userData: []
         };
     }
 
     componentDidMount() {
-        console.log("I'm in profile");
-        console.log(this);
+      
+        // if(!this.state.loggedIn){
+        //     this.setState({
+        //         redirectTo: '/'
+        //     })
+        // }
+        
     }
 
     //This is used onBlur in order to trim the values. 
@@ -36,7 +44,6 @@ class Profile extends Component {
     }
 
     render() {
-    
         return (
             <Container id="containerViewBugs" fluid="true">
 
@@ -56,7 +63,9 @@ class Profile extends Component {
             </Container>
         );
 
-    }
+    
+}
 }
 
-export default Profile;
+// export default Profile;
+export default withRouter(Profile)

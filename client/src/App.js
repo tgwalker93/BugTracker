@@ -4,7 +4,8 @@ import LandingPage from "./pages/landing-page";
 import BugView from "./pages/bug-view";
 import CreateBug from "./pages/create-bug";
 import Profile from "./pages/profile";
-import API from "./utils/API"
+import API from "./utils/API";
+import { withRouter } from 'react-router';
 
 import "./App.css";
 
@@ -15,7 +16,8 @@ class App extends Component {
     this.state = {
       loggedIn: false,
       user: null,
-      password: null
+      password: null,
+      redirectTo: null
     }
     this._login = this._login.bind(this)
   }
@@ -34,6 +36,7 @@ class App extends Component {
         console.log("Login failed!!! User is not authenticated. (App.js - componentDidMount)");
         this.setState({
           loggedIn: false,
+          // redirectTo: "/landing-page",
           user: null
         })
       }
@@ -53,25 +56,78 @@ class App extends Component {
         console.log(response);
         if (response.status === 200) {
           console.log("ATTEMPTING TO CONSOLE LOG EMAIL IN _LOGIN IN App.js");
+          console.log(response.data);
+            if(response.data.loggedInSuccess){
+
+            
           //var data = JSON.parse(response.data);
           console.log(response);
           // update the state
           this.setState({
             loggedIn: true,
             username: response.data.username,
-            password: response.data.password
+            password: response.data.password,
+            redirectTo: "/profile"
           })
+          //this.props.history.push("/profile");
+
+
+        }else {
+            console.log("logged in FAILED!!!");
+              this.setState({
+                loggedIn: false,
+                //  redirectTo: "/"
+              })
+              //this.props.history.push("/");
+        }
         }
       })
   }
 
     render() {
+      if (this.state.redirectTo) {
+        console.log("redirectTO has been called!!!");
+        console.log(this.state.redirectTo);
+        return(
+          <div>
+        <Redirect exact to={{ pathname: this.state.redirectTo }} render={() =>
+          <LandingPage
+            _login={this._login}
 
+          />}/> 
+
+          
+          <Route exact path="/landing-page"
+            render={() =>
+              <LandingPage
+                _login={this._login}
+
+              />} />
+          <Route exact path="/bug-view" component={BugView} />
+          <Route exact path="/create-bug" component={CreateBug} />
+          <Route exact path="/profile" render={() => <Profile loggedIn={this.state.loggedIn} user={this.state.username} />} />
+
+          <Route exact path="/" render={() => (
+            <Redirect to="/landing-page" />
+          )} />
+
+          </div>
+
+        )
+      }
       return (
+      // <Router>
+
+
+
+
         <div className="App">
-      <Router>
-        <div>
-          <Switch>
+       <div>
+
+
+
+        
+        {/* <Switch> */}
             <Route exact path="/landing-page" 
                   render={() =>
                     <LandingPage
@@ -80,30 +136,49 @@ class App extends Component {
                     />} />
                 <Route exact path="/bug-view" component={BugView} />
                 <Route exact path="/create-bug" component={CreateBug} />
-                <Route exact path="/profile" render={() => <Profile loggedIn={this.state.loggedIn} user={this.state.username} />}/>
+                 <Route exact path="/profile" render={() => <Profile loggedIn={this.state.loggedIn} user={this.state.username} />}/>
 
                 <Route exact path="/" render={() => (
                   <Redirect to="/landing-page" />
                 )} />
+  
+      {/* {this.state.redirectTo ? 
+            <Redirect exact to={{ pathname: this.state.redirectTo }} render={() =>
+           <LandingPage
+             _login={this._login}
 
-            {/* <Route exact path="/" render={() => (
-              <Redirect to="/landing-page" render={() => <landingpage _login={this._login} /> }/>
-            )} /> */}
+           />}/> 
+              : 
+              "" } */}
+      
+      
+      
+      
+      
+
                 {/* <Route
                   exact
                   path="/landing-page"
                   render={() =>
                     <landingpage
                       _login={this._login}
-
                     />}
                 /> */}
-          </Switch>
-        </div>
-      </Router>
-        </div>
-      )       
-    }
-  }
 
+
+
+       {/* </Switch> */}
+        </div>
+          </div>
+
+
+
+
+    //  </Router>
+      // ) 
+      )      
+    }
+
+  }
 export default App;
+// export default App;

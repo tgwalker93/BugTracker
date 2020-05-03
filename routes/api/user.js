@@ -39,18 +39,22 @@ app.post("/login",
             // handle succes or failure
             console.log("I SUCCESSFULLY CALLED post/Login from user route in backend. below is user");
             console.log(user);
+            console.log("req.body");
+            console.log(req.body);
 
             if(err){
                 res.json(err);
             }
-            if(!err) {
+            else if(user === false){
+                req.body.loggedInSuccess = false;
+                res.json(req.body);
+            }
+            else {
+                req.body.loggedInSuccess = true;
                 res.json(req.body);
             }
 
         })(req, res, next);
-        // console.log("i should send the user!!!");
-        // console.log(req.body);
-        // res.json(req.body);
     })
 
 
@@ -135,16 +139,16 @@ app.post("/login",
 
 // )
 
-app.get('/login', function (req, res, next) {
-    passport.authenticate('local', function (err, user, info) {
-        if (err) { return next(err); }
-        if (!user) { return res.redirect('/'); }
-        req.logIn(user, function (err) {
-            if (err) { return next(err); }
-            return res.redirect("/profile");
-        });
-    })(req, res, next);
-});
+// app.get('/login', function (req, res, next) {
+//     passport.authenticate('local', function (err, user, info) {
+//         if (err) { return next(err); }
+//         if (!user) { return res.redirect('/'); }
+//         req.logIn(user, function (err) {
+//             if (err) { return next(err); }
+//             return res.redirect("/profile");
+//         });
+//     })(req, res, next);
+// });
 
 //Save a newly registered user in the database.
 app.post("/saveUser", function (req, res) {
