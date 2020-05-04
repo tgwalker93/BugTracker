@@ -74,6 +74,7 @@ class App extends Component {
 
         }else {
             console.log("logged in FAILED!!!");
+            console.log(response);
               this.setState({
                 loggedIn: false
               })

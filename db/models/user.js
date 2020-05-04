@@ -33,11 +33,11 @@ const UserSchema = new Schema({
 //Define schema methods
 UserSchema.methods = {
     checkPassword: function (inputPassword) {
-        // console.log("i'm in User DB Modal and below is input password vs password in DB");
-        // console.log("inputpassword: " + inputPassword);
-        // console.log(this.password);
-        // console.log(bcrypt.compareSync(inputPassword, this.password));
-        // return bcrypt.compareSync(inputPassword, this.password)
+        console.log("i'm in User DB Modal and below is input password vs password in DB");
+        console.log("inputpassword: " + inputPassword);
+        console.log(this.password);
+        console.log(bcrypt.compareSync(inputPassword, this.password));
+        return bcrypt.compareSync(inputPassword, this.password)
     },
     hashPassword: plainTextPassword => {
         return bcrypt.hashSync(plainTextPassword, 10)
@@ -46,11 +46,11 @@ UserSchema.methods = {
 
 //Define hooks for pre-saving
 UserSchema.pre('save', function (next) {
-    if (!this.properties.password) {
+    if (!this.password) {
         console.log('=======NO PASSWORD PROVIDED=======')
         next()
     } else {
-        this.properties.password = this.hashPassword(this.properties.password)
+        this.password = this.hashPassword(this.password)
         next()
     }
 

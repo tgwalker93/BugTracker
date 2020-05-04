@@ -25,7 +25,8 @@ class LandingPage extends Component {
         emailAddressValid: false,
         phoneNumberValid: false,
         guestCountValid: false,
-        isLogin: true
+        loginOrCreateAccountButtonClicked: false,
+        loginButtonClicked: true
 
     };
     }
@@ -113,26 +114,34 @@ class LandingPage extends Component {
     handleFormSubmit = event => {
         event.preventDefault();    
         //this.validateFields();
-         this.props._login(this.state.emailAddress, this.state.password)
-            // console.log("HANDLE FORM SUBMIT FROM LOGIN HERE IS RESPONSE");
-            // console.log(response);
-            // this.setState({
-            //     redirectTo: '/profile'
-            // })
+        console.log("I'm in handle form submit");
+        console.log(this.state.emailAddress);
 
-      
+        if(this.state.loginButtonClicked){
+            //If the login button is clicked then we want submit LOGIN request, which is different than Create Account request
+            this.props._login(this.state.email, this.state.password)
+        } else {
+            //If Create Account button was clicked, then we want to post the user to the database.
+            this.saveUser();
+        }
+  
     };
 
-    handleSaveUser = event => {
-            event.preventDefault();
-            this.saveUser();
+    //LOGIN / CREATE ACCOUNT BUTTONS - Just to set it up so before I actually submit data to DB
+    handleLoginButtonClick = event => {
+        event.preventDefault();
+        this.setState({ loginOrCreateAccountButtonClicked: true, loginButtonClicked: true})
 
-   
+    }
+    handleCreateAccountButtonClick = event => {
+        event.preventDefault();
+        this.setState({ loginOrCreateAccountButtonClicked: true, loginButtonClicked: false })
+
     }
 
     createAccount = event => {
         event.preventDefault();
-        this.setState({isLogin: false});
+        this.setState({ loginButtonClicked: false});
 
     };
 
@@ -142,10 +151,11 @@ class LandingPage extends Component {
         console.log(this.state.passwordValid + " passwordvalid?");
         // if (this.state.passwordValid && this.state.firstNameValid && this.state.lastNameValid) {
 
-            console.log("we good");
+            console.log("Called saveUser() from LandingPage  .... BELOW IS THE STATE");
+            console.log(this.state);
             let userObj = {
                 userId: null,
-                username: this.state.username,
+                username: this.state.emailAddress,
                 password: this.state.password,
                 email: this.state.emailAddress,
                 user_email: this.state.email,
@@ -162,8 +172,11 @@ class LandingPage extends Component {
 
 
                     if (!response.data.error) {
-                        // userObj.userId = response.data.doc._id;
-                        // this.props._login(this.state.username, this.state.password, userObj);
+                        //userObj.userId = response.data.doc._id;
+
+
+                        //Now that the user account is created, let's automatically login the user in
+                         this.props._login(this.state.emailAddress, this.state.password, userObj);
                         // this.setState({
                         //     redirectTo: '/profile'
                         // })
@@ -217,47 +230,57 @@ class LandingPage extends Component {
                     <hr id="hline"></hr>
                     <Col id="formCol" size="sm-6">
                         <h1>BugSlayer</h1>
-                        {/* <h1 id="formHeader">Login</h1> */}
+                        {this.state.loginOrCreateAccountButtonClicked ?
+                            <div>
+                                {this.state.loginButtonClicked ?
+                                    <h1 id="formHeader">Login</h1>
+                                    :
+                                    <h1 id="formHeader">Create Account</h1>
 
-                        {this.state.isLogin ?
+                                }
+                                <form>
 
-                            <h1 id="formHeader">Login</h1>
-                            :
-                            
-                            <h1 id="formHeader">Create Account</h1>
+                                    {this.state.loginButtonClicked ?
+
+                                        ""
+                                        :
+
+                                        <div>
+                                            <p>First Name</p>
+                                            <Input onBlur={this.formatInput.bind(this)} isvalid={this.state.firstNameValid.toString()} fielderror={this.state.formErrors.firstName} formgroupclass={`form-group ${this.errorClass(this.state.formErrors.firstName)}`} value={this.state.firstName} id="firstName" onChange={this.handleChange.bind(this)} name="firstName"></Input>
+
+
+                                            <p>Last Name</p>
+                                            <Input onBlur={this.formatInput.bind(this)} isvalid={this.state.lastNameValid.toString()} fielderror={this.state.formErrors.lastName} formgroupclass={`form-group ${this.errorClass(this.state.formErrors.lastName)}`} value={this.state.lastName} id="lastName" onChange={this.handleChange.bind(this)} name="lastName"></Input>
+
+                                        </div>
+
+                                    }
+
+                                    <p>Email Address</p>
+                                    <Input onBlur={this.formatInput.bind(this)} isvalid={this.state.emailAddressValid.toString()} fielderror={this.state.formErrors.emailAddress} formgroupclass={`form-group ${this.errorClass(this.state.formErrors.emailAddress)}`} value={this.state.emailAddress} id="emailAddress" onChange={this.handleChange.bind(this)} name="emailAddress"></Input>
+
+                                    <p>Password</p>
+                                    <Input onBlur={this.formatInput.bind(this)} isvalid={this.state.passwordValid.toString()} fielderror={this.state.formErrors.password} formgroupclass={`form-group ${this.errorClass(this.state.formErrors.password)}`} value={this.state.password} id="password" onChange={this.handleChange.bind(this)} name="password"></Input>
+
+                                    <Button onClick={this.handleFormSubmit.bind(this)}> Submit </Button>
+
+                                    {this.state.loginButtonClicked ?
+                                        <h3 id="formFooterLink" onClick={this.handleCreateAccountButtonClick.bind(this)}>Create Account instead?</h3>
+                                        :
+                                        <h3 id="formFooterLink" onClick={this.handleLoginButtonClick.bind(this)}>Login instead?</h3>
+
+                                    }
+                                </form>
+                            </div>
+                            : 
+                            <div>
+                                <Button onClick={this.handleLoginButtonClick.bind(this)}> Login </Button>
+                                <Button onClick={this.handleCreateAccountButtonClick.bind(this)}> Create Account </Button>
+                            </div>
+                       
 
                         }
-                        <form>
-
-                        {this.state.isLogin ? 
-
-                                ""
-                        :
-                        
-                               <div>
-                                    <p>First Name</p>
-                                    <Input onBlur={this.formatInput.bind(this)} isvalid={this.state.firstNameValid.toString()} fielderror={this.state.formErrors.firstName} formgroupclass={`form-group ${this.errorClass(this.state.formErrors.firstName)}`} value={this.state.firstName} id="firstName" onChange={this.handleChange.bind(this)} name="firstName"></Input>
-                            
-                            
-                                    <p>Last Name</p>
-                                    <Input onBlur={this.formatInput.bind(this)} isvalid={this.state.lastNameValid.toString()} fielderror={this.state.formErrors.lastName} formgroupclass={`form-group ${this.errorClass(this.state.formErrors.lastName)}`} value={this.state.lastName} id="lastName" onChange={this.handleChange.bind(this)} name="lastName"></Input>
-                            
-                                </div>
-   
-                 }
-                    
-
-                    
-                        <p>Email Address</p>
-                        <Input onBlur={this.formatInput.bind(this)}isvalid={this.state.emailAddressValid.toString()} fielderror={this.state.formErrors.emailAddress} formgroupclass={`form-group ${this.errorClass(this.state.formErrors.emailAddress)}`} value={this.state.emailAddress} id="emailAddress" onChange={this.handleChange.bind(this)} name="emailAddress"></Input>
-
-                        <p>Password</p>
-                            <Input onBlur={this.formatInput.bind(this)} isvalid={this.state.passwordValid.toString()} fielderror={this.state.formErrors.password} formgroupclass={`form-group ${this.errorClass(this.state.formErrors.password)}`} value={this.state.password} id="password" onChange={this.handleChange.bind(this)} name="password"></Input>
-
-                            <Button onClick={this.handleFormSubmit.bind(this)}> Login </Button>
-                            <Button onClick={this.createAccount.bind(this)}> Create Account </Button>
-                            <Button onClick={this.handleSaveUser.bind(this)}> Submit </Button>
-                        </form>
                     </Col>
                 </Row>
 
