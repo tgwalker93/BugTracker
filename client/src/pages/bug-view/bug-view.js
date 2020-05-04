@@ -147,6 +147,35 @@ class BugViewPage extends Component {
                     this.setState({ errorResponse: response })
                 }
             }).catch(err => console.log(err));
+
+            console.log("I am here");
+    }
+
+    deleteBugInDB(bugClickedOn) {
+        console.log("I'm in delete bug in DB method. Here is the bug that was clicked on");
+        console.log(bugClickedOn);
+        API.deleteBug(bugClickedOn)
+            .then(response => {
+
+                if (!response.data.error) {
+                    console.log("I WAS SUCCESSFUL DELETING THE Bug FROM Bug View PAGE. Here is the response.");
+                    console.log(response);
+
+                     if(response.data.deletedCount > 0){
+                         //Removing the bug from the UI
+                         const index = this.state.bugData.indexOf(bugClickedOn);
+                         if (index > -1) {
+                             this.state.bugData.splice(index, 1);
+                         }
+                     } else {
+                         console.log("Deleting the bug failed for some reason!");
+                     }
+
+                     this.forceUpdate();
+                } else {
+                    this.setState({ errorResponse: response })
+                }
+            })
     }
     // ****************** END OF DB METHODS*******************************************
 
@@ -180,6 +209,10 @@ class BugViewPage extends Component {
             bugDescriptionInModal: bugClickedOn.bugDescription, 
             isNewBug: false, 
             selectedBug: bugClickedOn });
+    }
+    deleteBugButton(bugClickedOn){ 
+        console.log("Delete Bug Clicked on!!! ");
+        this.deleteBugInDB(bugClickedOn);
     }
 
     createNewBugButton = () => {
@@ -222,6 +255,7 @@ class BugViewPage extends Component {
                                     <th className="bugViewTable_th" scope="col">Bug Title</th>
                                     <th className="bugViewTable_th" scope="col">Bug Description</th>
                                     <th className="bugViewTable_th" scope="col"></th>
+                                    <th className="bugViewTable_th" scope="col"></th>
                                             </tr>
                                 </thead>
                                         <tbody>
@@ -235,6 +269,8 @@ class BugViewPage extends Component {
                                                     Edit
                                             </Button>
                                             </td>
+
+                                            <td id="deleteColumn" className="bugViewTable_td"> <Button variant="primary" onClick={() => this.deleteBugButton(bug)}>Delete</Button></td>
                                             </tr>
                                     )
                                 })}

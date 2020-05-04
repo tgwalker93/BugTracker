@@ -26,6 +26,11 @@ export default {
         console.log(bugData);
         return axios.post("/api/bug/updateBug", bugData);
     },
+    deleteBug: function (bugData) {
+        console.log("I'm in the API file");
+        console.log(bugData);
+        return axios.post("/api/bug/deleteBug", bugData);
+    },
     getAllBugs: function() {
         //TODO - Set up organization ID query
         //Query db to get all bugs

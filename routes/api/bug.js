@@ -28,6 +28,47 @@ app.get("/getAllBugs", function (req, res) {
 
 })
 
+
+//Getting delete a bug from the Database!
+app.post("/deleteBug", function (req, res) {
+
+    console.log("i'm in the DELETE BUG BACKEND API/ ROUTE");
+    console.log(req.body);
+
+
+    let filter = { _id: req.body.mongoID };
+    let options = {
+        safe: true
+    }
+
+    let update = {
+        bugTitle: req.body.bugTitle,
+        bugDescription: req.body.bugDescription
+    };
+
+    console.log(req.body.mongoID);
+
+    Bug
+        .deleteOne(filter, function (error, doc) {
+            // Log any errors
+            if (error) {
+                console.log("bug deleted back-end failed!")
+                console.log(error);
+                res.json(error);
+            }
+            // Or send the doc to the browser as a json object
+            else {
+                console.log("bug delete back-end was successful!");
+                console.log(doc);
+                res.json(doc);
+            }
+        })
+        .catch(err => res.status(422).json(err));
+
+
+})
+
+
 //Updating a bug from the Database!
 app.post("/updateBug", function (req, res) {
 

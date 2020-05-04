@@ -25,6 +25,6 @@
 
 }
 
-#editColumn {
+#editColumn, #deleteColumn {
     width: 50px;
 }
