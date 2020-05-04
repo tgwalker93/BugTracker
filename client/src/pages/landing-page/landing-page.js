@@ -119,7 +119,7 @@ class LandingPage extends Component {
 
         if(this.state.loginButtonClicked){
             //If the login button is clicked then we want submit LOGIN request, which is different than Create Account request
-            this.props._login(this.state.email, this.state.password)
+            this.props._login(this.state.emailAddress, this.state.password)
         } else {
             //If Create Account button was clicked, then we want to post the user to the database.
             this.saveUser();
