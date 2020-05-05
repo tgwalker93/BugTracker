@@ -122,6 +122,7 @@ class Profile extends Component {
                 } else {
                     console.log("Updating USER PASSWORD WAS A FAIL!!!! Below is the response.data");
                     console.log(response.data);
+                    this.setState({ showModal: false });
                 }
             })
         
