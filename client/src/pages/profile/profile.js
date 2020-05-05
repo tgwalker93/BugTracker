@@ -70,13 +70,15 @@ class Profile extends Component {
 
     
 
-        this.setState({
-            formErrors: fieldValidationErrors,
-            oldPasswordValid: oldPasswordValid,
-            newPassword1and2Valid: newPassword1and2Valid
-        }, () => {
-            this.attemptToSavePasswordToDB();
-        });
+        //TODO --- HANDLE FORM VALIDATION
+
+        // this.setState({
+        //     formErrors: fieldValidationErrors,
+        //     oldPasswordValid: oldPasswordValid,
+        //     newPassword1and2Valid: newPassword1and2Valid
+        // }, () => {
+        //     this.attemptToSavePasswordToDB();
+        // });
     }
 
 
@@ -102,16 +104,27 @@ class Profile extends Component {
 
 
     //************************THESE METHODS ARE CALLED FROM BUTTONS WITHIN THE MODAL*********************
-    updateOrCreateBug = () => {
-        if (this.state.isNewBug) {
-            this.saveNewBugInDB();
-        } else {
-            //UPDATE THE BUG DATA LOCALLY BEFORE PUSHING TO DB
-            this.state.bugData[this.state.currentBugIndex].bugTitle = this.state.bugTitleInModal;
-            this.state.bugData[this.state.currentBugIndex].bugDescription = this.state.bugDescriptionInModal;
-            this.setState({ selectedBug: this.state.bugData[this.state.currentBugIndex] });
-            this.updateBugInDB();
+    handleUpdatePassword = () => {
+
+        let userObj = {
+            password: this.state.oldPassword,
+            newPassword: this.state.newPassword,
+            username: this.props.username,
+            mongoID: this.props.mongoID
         }
+        API.updateUserInDB(userObj)
+            .then(response => {
+
+                if (!response.data.error) {
+                    console.log("UpdatePassword successful in Profile Page, below is response.data");
+                    console.log(response.data);
+
+                } else {
+                    console.log("Updating USER PASSWORD WAS A FAIL!!!! Below is the response.data");
+                    console.log(response.data);
+                }
+            })
+        
     }
     closeModal = () => {
         this.setState({ showModal: false });
@@ -183,7 +196,7 @@ class Profile extends Component {
                                 <Button variant="secondary" onClick={this.closeModal}>
                                     Close
                                   </Button>
-                                <Button variant="primary" onClick={this.updateOrCreateBug}>
+                                <Button variant="primary" onClick={this.handleUpdatePassword}>
                                     Save Changes
                               </Button>
                             </Modal.Footer>

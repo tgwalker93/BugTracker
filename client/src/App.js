@@ -116,7 +116,7 @@ class App extends Component {
               />} />
           <Route exact path="/bug-view" component={BugView} />
           <Route exact path="/create-bug" component={CreateBug} />
-              <Route exact path="/profile" render={() => <Profile loggedIn={this.state.loggedIn} user={this.state.username} mongoID={this.state.mongoID} firstName={this.state.firstName}/>} />
+              <Route exact path="/profile" render={() => <Profile loggedIn={this.state.loggedIn} username={this.state.username} mongoID={this.state.mongoID} firstName={this.state.firstName}/>} />
 
           <Route exact path="/" render={() => (
             <Redirect to="/landing-page" />

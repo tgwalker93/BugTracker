@@ -5,6 +5,9 @@ export default {
         console.log("i'm in API.js file, calling user");
         return axios.get("/api/user");
     },
+    updateUserInDB(userObj){
+        return axios.post("/api/user/updateUser", userObj);
+    },
     login: function (userData) {
         console.log("LoginAPI")
         console.log(userData);

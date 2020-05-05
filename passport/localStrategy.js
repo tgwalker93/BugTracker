@@ -28,7 +28,8 @@ const strategy = new LocalStrategy(
             //     return done(null, false, { message: 'Incorrect password' });
             // }
 
-            console.log("Password is a MATCH!!!!!");
+            console.log("Password is a MATCH from LocalStrategy!!!!! Below is user match");
+            console.log(userMatch)
             return done(null, userMatch)
         })
     }

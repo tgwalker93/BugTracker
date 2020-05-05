@@ -35,9 +35,13 @@ UserSchema.methods = {
     checkPassword: function (inputPassword) {
         console.log("i'm in User DB Modal and below is input password vs password in DB");
         console.log("inputpassword: " + inputPassword);
-        console.log(this.password);
+        console.log(this);
+        if(!this.password){
+            console.log("In User DB Model - Password of this object is null for some reason??");
+            return false;
+        }
         console.log(bcrypt.compareSync(inputPassword, this.password));
-        return bcrypt.compareSync(inputPassword, this.password)
+        return bcrypt.compareSync(inputPassword, this.password);
     },
     hashPassword: plainTextPassword => {
         return bcrypt.hashSync(plainTextPassword, 10)
@@ -55,6 +59,19 @@ UserSchema.pre('save', function (next) {
     }
 
 })
+
+//Define hooks for pre-updating
+UserSchema.pre('findOneAndUpdate', function (next) {
+    if (!this.password) {
+        console.log('=======NO PASSWORD PROVIDED=======')
+        next()
+    } else {
+        this.password = this.hashPassword(this.password)
+        next()
+    }
+
+})
+
 
 
 UserSchema.index({ '$**': 'text' });
