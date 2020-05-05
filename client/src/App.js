@@ -16,6 +16,9 @@ class App extends Component {
     this.state = {
       loggedIn: false,
       user: null,
+      firstName: null,
+      lastName: null,
+      mongoID: null,
       password: null,
       redirectTo: null
     }
@@ -61,11 +64,16 @@ class App extends Component {
 
             
           //var data = JSON.parse(response.data);
-          console.log(response);
+         // console.log(response);
+         console.log("_login from App.js is SUCCESSFUL, below is the response data");
+         console.log(response.data);
           // update the state
           this.setState({
             loggedIn: true,
             username: response.data.username,
+            mongoID: response.data.mongoID,
+            firstName: response.data.firstName,
+            lastName: response.data.lastName,
             password: response.data.password,
             redirectTo: "/profile"
           })
@@ -108,7 +116,7 @@ class App extends Component {
               />} />
           <Route exact path="/bug-view" component={BugView} />
           <Route exact path="/create-bug" component={CreateBug} />
-          <Route exact path="/profile" render={() => <Profile loggedIn={this.state.loggedIn} user={this.state.username} />} />
+              <Route exact path="/profile" render={() => <Profile loggedIn={this.state.loggedIn} user={this.state.username} mongoID={this.state.mongoID} firstName={this.state.firstName}/>} />
 
           <Route exact path="/" render={() => (
             <Redirect to="/landing-page" />

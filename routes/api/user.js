@@ -50,8 +50,17 @@ app.post("/login",
                 res.json(req.body);
             }
             else {
-                req.body.loggedInSuccess = true;
-                res.json(req.body);
+                //Since we found the user in the database, we have a successful login. But we don't want to send all the data back to the client.
+                userObjToSendBackToClient =
+                {
+                    username: req.body.username,
+                    mongoID: user._id,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    password: user.password,
+                    loggedInSuccess: true
+                }
+                res.json(userObjToSendBackToClient);
             }
 
         })(req, res, next);

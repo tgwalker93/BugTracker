@@ -5,6 +5,7 @@ import { Input, Button, TextArea } from "../../components/Form";
 import Cookies from 'universal-cookie';
 import API from "../../utils/API";
 import "./bug-view.css";
+import { Link } from "react-router-dom";
 import Modal from "react-bootstrap/Modal";
 // import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -238,6 +239,8 @@ class BugViewPage extends Component {
                                 <h1 className="display-4 BugTrackerTitle">View Bugs</h1>
                             </Container>
                         </div>
+                        <Link to="/profile" className="log" ><Button>View Profile</Button></Link>
+                        <br />
                         <p><strong>Assignee </strong> </p>
                          <select>
                             <option value=""></option>
