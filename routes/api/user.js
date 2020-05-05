@@ -210,8 +210,11 @@ app.post("/updateUser", function (req, res, next) {
                 Password is not encyrpting when trying to save. Please refer to the prehook "save" method which gets called in the user DB Model
             //---------------------------------------*/
 
-            User.findOneAndUpdate(filter, update, options)
-                .then(function (doc, error) {
+            console.log("now that password was a match, please see req.body password below");
+            console.log(req.body);
+            user.password = req.body.newPassword;
+            user.save(function (error, doc) {
+
                     // Log any errors
                     if (error) {
                         console.log("getUserData back-end failed!")
@@ -235,7 +238,7 @@ app.post("/updateUser", function (req, res, next) {
                         res.json(userObjToSendBackToClient);
                     }
                 })
-                .catch(err => res.status(422).json(err));
+   
         }
 
     })(req, res, next);

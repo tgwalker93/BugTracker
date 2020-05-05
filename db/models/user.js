@@ -60,17 +60,20 @@ UserSchema.pre('save', function (next) {
 
 })
 
-//Define hooks for pre-updating
-UserSchema.pre('findOneAndUpdate', function (next) {
-    if (!this.password) {
-        console.log('=======NO PASSWORD PROVIDED=======')
-        next()
-    } else {
-        this.password = this.hashPassword(this.password)
-        next()
-    }
 
-})
+// Maybe add another hook for updating? 
+
+//Define hooks for pre-updating
+// UserSchema.pre('findOneAndUpdate', function (next) {
+//     if (!this.password) {
+//         console.log('=======NO PASSWORD PROVIDED=======')
+//         next()
+//     } else {
+//         this.password = this.hashPassword(this.password)
+//         next()
+//     }
+
+// })
 
 
 

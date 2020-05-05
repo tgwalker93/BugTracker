@@ -108,7 +108,7 @@ class Profile extends Component {
 
         let userObj = {
             password: this.state.oldPassword,
-            newPassword: this.state.newPassword,
+            newPassword: this.state.newPassword1,
             username: this.props.username,
             mongoID: this.props.mongoID
         }
