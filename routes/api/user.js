@@ -1,8 +1,10 @@
 var path = require('path');
 var request = require("request");
 var express = require("express");
+var sgMail = require('@sendgrid/mail');
 var passport = require('../../passport');
 var app = express.Router();
+
 //models 
 var User = require("../../db/models/user.js");
 
@@ -17,6 +19,30 @@ app.get('/user', (req, res) => {
     } else {
         return res.json({ user: null })
     }
+})
+
+
+
+
+app.get('/sendEmail', (req, res) => {
+    console.log('I"M IN /sendEmail route from user.js on the backend');
+    // using Twilio SendGrid's v3 Node.js Library
+    // https://github.com/sendgrid/sendgrid-nodejs
+    sgMail.setApiKey("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");
+    const msg = {
+        to: 'tgwalker93@gmail.com',
+        from: 'tgwalker93@gmail.com',
+        subject: 'Sending with Twilio SendGrid is Fun',
+        text: 'and easy to do anywhere, even with Node.js',
+        html: '<strong>and easy to do anywhere, even with Node.js</strong>',
+    };
+    sgMail.send(msg).then(() => {
+        console.log("sending the email was a success!!!");
+
+    }).catch((error) => {
+        console.log('error', error);
+        console.log(error.response.headers);
+    });
 })
 
 

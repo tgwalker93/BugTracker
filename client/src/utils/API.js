@@ -5,6 +5,10 @@ export default {
         console.log("i'm in API.js file, calling user");
         return axios.get("/api/user");
     },
+    sendEmail() {
+        console.log("i'm in API.JS on the front end");
+        return axios.get("/api/user/sendEmail");
+    },
     updateUserInDB(userObj){
         return axios.post("/api/user/updateUser", userObj);
     },
