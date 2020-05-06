@@ -5,9 +5,9 @@ export default {
         console.log("i'm in API.js file, calling user");
         return axios.get("/api/user");
     },
-    sendEmail() {
+    sendForgotPasswordEmail(userObj) {
         console.log("i'm in API.JS on the front end");
-        return axios.get("/api/user/sendEmail");
+        return axios.post("/api/user/sendForgotPasswordEmail", userObj);
     },
     updateUserInDB(userObj){
         return axios.post("/api/user/updateUser", userObj);

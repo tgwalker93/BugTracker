@@ -1,5 +1,6 @@
 var path = require('path');
 var request = require("request");
+var axios = require("axios");
 var express = require("express");
 var sgMail = require('@sendgrid/mail');
 var passport = require('../../passport');
@@ -24,25 +25,103 @@ app.get('/user', (req, res) => {
 
 
 
-app.get('/sendEmail', (req, res) => {
-    console.log('I"M IN /sendEmail route from user.js on the backend');
-    // using Twilio SendGrid's v3 Node.js Library
-    // https://github.com/sendgrid/sendgrid-nodejs
-    sgMail.setApiKey("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");
-    const msg = {
-        to: 'tgwalker93@gmail.com',
-        from: 'tgwalker93@gmail.com',
-        subject: 'Sending with Twilio SendGrid is Fun',
-        text: 'and easy to do anywhere, even with Node.js',
-        html: '<strong>and easy to do anywhere, even with Node.js</strong>',
-    };
-    sgMail.send(msg).then(() => {
-        console.log("sending the email was a success!!!");
+app.post('/sendForgotPasswordEmail', (req, res) => {
 
-    }).catch((error) => {
-        console.log('error', error);
-        console.log(error.response.headers);
-    });
+    console.log('I"M IN /sendEmail route from user.js on the backend');
+    console.log("Looking for user with the email below...");
+    console.log(req.body);
+    let filter = { email: req.body.email };
+
+    User
+        .findOne(filter, function (error, doc) {
+            // Log any errors
+            if (error || doc===null) {
+                console.log("COULD NOT FIND USER WITH THAT EMAIL!")
+                console.log(error);
+                let responseObj = {
+                    error: true
+                }
+                res.json(responseObj);
+            }
+            // Or send the doc to the browser as a json object
+            else {
+                console.log("FOUND USER WITH THAT EMAIL");
+                console.log(doc);
+
+                console.log("now i'm attempting to send the user an email with thier password!");
+                var apiKey = "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"
+                var query = "https://api.sendgrid.com/v3/mail/send";
+
+                console.log(User);
+                let sendGridAPIConfig = {
+                    headers: {
+                        "Authorization": "Bearer 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",
+                        "Content-Type": "application/json"
+                    }
+                }
+                var emailObj = {
+                    "personalizations": [
+                        {
+                            "to": [
+                                {
+                                    "email": req.body.email,
+                                    "name": "Registered User"
+                                }
+                            ],
+                            "dynamic_template_data": {
+                                "verb": "",
+                                "adjective": "",
+                                "noun": "",
+                                "currentDayofWeek": ""
+                            },
+                            "subject": "BugSlayer - Forgot Password",
+                        }
+                    ],
+                    "content": [{
+                        "type": "text/plan",
+                        "value": "Hi, please click here to change your forgotten password!"
+                    }],
+                    "from": {
+                        "email": "youmustloveslayingbugs@gmail.com",
+                        "name": "Tyler the Bug Slayer"
+                    },
+                    "reply_to": {
+                        "email": req.body.email,
+                        "name": "Registered User"
+                    },
+                    "template_id": "d-38defecb5572492090d6280bdbf8f73a"
+                }
+                axios
+                    .post(query, emailObj, sendGridAPIConfig)
+                    .then(APIres => {
+                        console.log("sending email was a success, status code is below");
+                        //console.log(`statusCode: ${res.statusCode}`)
+                        //APIres.error = false;
+                        let responseObj = 
+                        {
+                            error: "false",
+                            message: "Email has been sent"
+                        }
+                        //console.log(APIres.connection)
+                        res.json(responseObj);
+                    })
+                    .catch(error => {
+                        console.error(error)
+                        //error.error = true;
+                        res.json(error);
+                    })
+
+
+
+
+
+                //res.json(doc);
+            }
+        })
+        .catch(err => res.status(422).json(err));
+
+
+
 })
 
 

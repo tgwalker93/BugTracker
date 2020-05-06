@@ -131,24 +131,6 @@ class Profile extends Component {
         this.setState({ showModal: false });
     }
     //*********************** END OF MODAL BUTTON CLICK METHODS ****************************
-
-
-    testSendingAnEmail = event => {
-        event.preventDefault();
-        API.sendEmail()
-            .then(response => {
-
-                if (!response.data.error) {
-                    console.log("SendEamil successful in Profile Page, below is response.data");
-                    console.log(response.data);
-
-                } else {
-                    console.log("Send Email WAS A FAIL!!!! Below is the response.data");
-                    console.log(response.data);
-                    this.setState({ showModal: false });
-                }
-            })
-    }
     
     render() {
         return (
@@ -165,9 +147,7 @@ class Profile extends Component {
                         <Link to="/bug-view" className="log" ><Button>View Bugs</Button></Link>
                         <Button onClick={this.handleChangePasswordButtonClick.bind(this)}>Change Password</Button>
 
-                        <Button onClick={this.testSendingAnEmail.bind(this)}>Test Sending an email</Button>
                         
-
                         {/* This modal will pop up for changing password! */}
                         <Modal show={this.state.showModal} animation={false}>
                             <Modal.Header>

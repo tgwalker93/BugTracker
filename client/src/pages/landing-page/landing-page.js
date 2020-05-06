@@ -26,8 +26,8 @@ class LandingPage extends Component {
         phoneNumberValid: false,
         guestCountValid: false,
         loginOrCreateAccountButtonClicked: false,
-        loginButtonClicked: true
-
+        loginButtonClicked: true,
+        forgotPasswordButtonClicked: false
     };
     }
 
@@ -120,7 +120,11 @@ class LandingPage extends Component {
         if(this.state.loginButtonClicked){
             //If the login button is clicked then we want submit LOGIN request, which is different than Create Account request
             this.props._login(this.state.emailAddress, this.state.password)
-        } else {
+        } else if(this.state.forgotPasswordButtonClicked){
+            this.sendForgotPasswordEmail();
+
+        }
+        else {
             //If Create Account button was clicked, then we want to post the user to the database.
             this.saveUser();
         }
@@ -130,13 +134,18 @@ class LandingPage extends Component {
     //LOGIN / CREATE ACCOUNT BUTTONS - Just to set it up so before I actually submit data to DB
     handleLoginButtonClick = event => {
         event.preventDefault();
-        this.setState({ loginOrCreateAccountButtonClicked: true, loginButtonClicked: true})
+        this.setState({ loginOrCreateAccountButtonClicked: true, loginButtonClicked: true, forgotPasswordButtonClicked: false})
 
     }
     handleCreateAccountButtonClick = event => {
         event.preventDefault();
-        this.setState({ loginOrCreateAccountButtonClicked: true, loginButtonClicked: false })
+        this.setState({ loginOrCreateAccountButtonClicked: true, loginButtonClicked: false, forgotPasswordButtonClicked: false })
 
+    }
+
+    handleForgotPasswordButtonClick = event => {
+        event.preventDefault();
+        this.setState({ loginOrCreateAccountButtonClicked: false, loginButtonClicked: false, forgotPasswordButtonClicked: true})
     }
 
     createAccount = event => {
@@ -145,6 +154,32 @@ class LandingPage extends Component {
 
     };
 
+
+    sendForgotPasswordEmail() {
+        let userObj = {
+            email: this.state.emailAddress
+        }
+
+        console.log("I'm in SEND FORGOT PASSWROD EMAIL METHOD ON landing-page js");
+
+        API.sendForgotPasswordEmail(userObj)
+            .then(response => {
+
+
+
+                if (!response.data.error) {
+                    //userObj.userId = response.data.doc._id;
+
+                    // this.setState({
+                    //     redirectTo: '/profile'
+                    // })
+                    console.log("send forgot password was successful, i'm back at landing-page.js, in API.sendForgotPasswordEmail");
+                    console.log(response.ServerResponse);
+                } else {
+                    this.setState({ errorResponse: response })
+                }
+            })
+    }
 
     saveUser() {
         console.log("HELLO?!?!!?!");
@@ -239,6 +274,7 @@ class LandingPage extends Component {
 
                                 }
                                 <form>
+                                    
 
                                     {this.state.loginButtonClicked ?
 
@@ -274,13 +310,43 @@ class LandingPage extends Component {
                                 </form>
                             </div>
                             : 
-                            <div>
-                                <Button onClick={this.handleLoginButtonClick.bind(this)}> Login </Button>
-                                <Button onClick={this.handleCreateAccountButtonClick.bind(this)}> Create Account </Button>
-                            </div>
-                       
 
+                            <div>
+
+                                {
+                                    this.state.forgotPasswordButtonClicked ?
+                                        <div>
+
+                                            <p><strong>Please enter your email address. If correct, we will send you an email!</strong></p>
+                                            <p>Email Address</p>
+                                            <Input onBlur={this.formatInput.bind(this)} isvalid={this.state.emailAddressValid.toString()} fielderror={this.state.formErrors.emailAddress} formgroupclass={`form-group ${this.errorClass(this.state.formErrors.emailAddress)}`} value={this.state.emailAddress} id="emailAddress" onChange={this.handleChange.bind(this)} name="emailAddress"></Input>
+                                            <Button onClick={this.handleFormSubmit.bind(this)}> Submit </Button>
+                                            
+                                            <h3 id="formFooterLink" onClick={this.handleLoginButtonClick.bind(this)}>Login instead?</h3>
+                                            <h3 id="formFooterLink" onClick={this.handleCreateAccountButtonClick.bind(this)}>Create Account instead?</h3>
+                                        </div>
+                                            :                                                                                
+                                             <div>                                
+                                            <Button onClick={this.handleLoginButtonClick.bind(this)}> Login </Button>
+                                            <Button onClick={this.handleCreateAccountButtonClick.bind(this)}> Create Account </Button>
+                                            <Button onClick={this.handleForgotPasswordButtonClick.bind(this)}>Forgot Password?</Button>      
+                                            </div>
+
+
+                                }
+
+
+
+
+
+
+
+
+
+                            </div>
+                              
                         }
+                        
                     </Col>
                 </Row>
 
