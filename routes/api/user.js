@@ -49,35 +49,15 @@ app.post('/sendForgotPasswordEmail', (req, res, next) => {
             }
             // Or send the doc to the browser as a json object
             else {
-                console.log("FOUND USER WITH THAT EMAIL");
-                console.log(doc);
-
-                console.log("here is the process.env " );
-                //console.log(ENV['SENDGRID_API_KEY']);
-                console.log(process.env.USERDOMAIN);
-
-                console.log(doc);
-
-                
-
-
-                //Now that we found the right email, we will create an arbitrary new password for the user.
-
-
-                //console.log(user);
-
-
-                //Now that we found our user (the doc variable, we want to save a newly generated password before we send email out)
-
-                doc.password  = "test";
-
-
+                console.log("FOUND USER WITH THAT EMAIL");      
 
                 //Generate a random string to save as the password 
                 var newPassword = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
-                console.log(newPassword);
+                //Now that we found our user (the doc variable, we want to save a newly generated password before we send email out)
+                doc.password = newPassword;
                 
+                //Update the user object in the db, effectively updating just the password.
                 doc.save(function (error, doc) {
 
                     // Log any errors
@@ -93,7 +73,7 @@ app.post('/sendForgotPasswordEmail', (req, res, next) => {
                     }
                 })
 
-                //Now that wwe saved the new password, we will use the sendgridAPI to send the email to the user
+                //Now that we saved the new password, we will use the sendgridAPI to send the email to the user
 
                 //First we draft the email and API config stuff
 
