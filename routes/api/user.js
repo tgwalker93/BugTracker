@@ -4,12 +4,16 @@ var axios = require("axios");
 var express = require("express");
 var sgMail = require('@sendgrid/mail');
 var passport = require('../../passport');
+var dotenv = require('dotenv');
 var app = express.Router();
+
+//loading .env file
+dotenv.config();
 
 //models 
 var User = require("../../db/models/user.js");
 
-
+dotenv.config();
 
 // this route is just used to get the user basic info
 app.get('/user', (req, res) => {
@@ -25,7 +29,7 @@ app.get('/user', (req, res) => {
 
 
 
-app.post('/sendForgotPasswordEmail', (req, res) => {
+app.post('/sendForgotPasswordEmail', (req, res, next) => {
 
     console.log('I"M IN /sendEmail route from user.js on the backend');
     console.log("Looking for user with the email below...");
@@ -48,17 +52,68 @@ app.post('/sendForgotPasswordEmail', (req, res) => {
                 console.log("FOUND USER WITH THAT EMAIL");
                 console.log(doc);
 
-                console.log("now i'm attempting to send the user an email with thier password!");
-                var apiKey = "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"
-                var query = "https://api.sendgrid.com/v3/mail/send";
+                console.log("here is the process.env " );
+                //console.log(ENV['SENDGRID_API_KEY']);
+                console.log(process.env.USERDOMAIN);
 
-                console.log(User);
+                console.log(doc);
+
+                
+
+
+                //Now that we found the right email, we will create an arbitrary new password for the user.
+
+
+                //console.log(user);
+
+
+                //Now that we found our user (the doc variable, we want to save a newly generated password before we send email out)
+
+                doc.password  = "test";
+
+
+
+                //Generate a random string to save as the password 
+                var newPassword = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+                console.log(newPassword);
+                
+                doc.save(function (error, doc) {
+
+                    // Log any errors
+                    if (error) {
+                        console.log("getUserData back-end failed!")
+                        console.log(error);
+                    }
+                    // Or send the doc to the browser as a json object
+                    else {
+                        console.log("updateUser node route back-end was successful, below is doc!");
+                        console.log(doc);
+
+                    }
+                })
+
+                //Now that wwe saved the new password, we will use the sendgridAPI to send the email to the user
+
+                //First we draft the email and API config stuff
+
+
+                //Checking to see if we are not on the heroku server
+                var apiKey = "NONE";
+                if(process.env.USERDOMAIN !== "TYLER") {
+                    apikey = process.env.SENDGRID_API_KEY;
+                    
+                }
                 let sendGridAPIConfig = {
                     headers: {
-                        "Authorization": "Bearer <<API KEY HERE>>",
+                        "Authorization": "Bearer" + apikey,
                         "Content-Type": "application/json"
                     }
                 }
+                //Basic query for sending out a single email
+                var query = "https://api.sendgrid.com/v3/mail/send";
+                
+                //Below is the object the sendGrid expects when they draft an email
                 var emailObj = {
                     "personalizations": [
                         {
@@ -78,8 +133,8 @@ app.post('/sendForgotPasswordEmail', (req, res) => {
                         }
                     ],
                     "content": [{
-                        "type": "text/plan",
-                        "value": "Hi, please click here to change your forgotten password!"
+                        "type": "text/plain",
+                        "value": "Hi,<br> here is your new password: " + apiKey + "<br> Please login and change your password."
                     }],
                     "from": {
                         "email": "youmustloveslayingbugs@gmail.com",
@@ -91,16 +146,19 @@ app.post('/sendForgotPasswordEmail', (req, res) => {
                     },
                     "template_id": "d-38defecb5572492090d6280bdbf8f73a"
                 }
+
+                //Now we use axios to POST to the sendgrid API
                 axios
                     .post(query, emailObj, sendGridAPIConfig)
                     .then(APIres => {
                         console.log("sending email was a success, status code is below");
                         //console.log(`statusCode: ${res.statusCode}`)
-                        //APIres.error = false;
+                        //APIres.error = false
                         let responseObj = 
                         {
                             error: "false",
-                            message: "Email has been sent"
+                            message: "Email has been sent",
+                            APIresponseObj: APIres
                         }
                         //console.log(APIres.connection)
                         res.json(responseObj);
@@ -309,11 +367,6 @@ app.post("/updateUser", function (req, res, next) {
 
             console.log(req.body.mongoID);
 
-
-            /*//TODO ----- -----------
-            
-                Password is not encyrpting when trying to save. Please refer to the prehook "save" method which gets called in the user DB Model
-            //---------------------------------------*/
 
             console.log("now that password was a match, please see req.body password below");
             console.log(req.body);

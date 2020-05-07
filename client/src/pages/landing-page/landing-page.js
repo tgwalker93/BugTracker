@@ -174,8 +174,10 @@ class LandingPage extends Component {
                     //     redirectTo: '/profile'
                     // })
                     console.log("send forgot password was successful, i'm back at landing-page.js, in API.sendForgotPasswordEmail");
-                    console.log(response.ServerResponse);
+                    console.log(response);
                 } else {
+                    console.log("error found!!!");
+                    console.log(response);
                     this.setState({ errorResponse: response })
                 }
             })
