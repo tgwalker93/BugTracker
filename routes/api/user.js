@@ -115,6 +115,10 @@ app.post('/sendForgotPasswordEmail', (req, res, next) => {
                 
                 //Below is the object the sendGrid expects when they draft an email
                 var emailObj = {
+                    "from": {
+                        "email": "youmustloveslayingbugs@gmail.com",
+                        "name": "Tyler the Bug Slayer"
+                    },
                     "personalizations": [
                         {
                             "to": [
@@ -128,14 +132,6 @@ app.post('/sendForgotPasswordEmail', (req, res, next) => {
                             }
                         }
                     ],
-                    "content": [{
-                        "type": "text/plain",
-                        "value": "Bug Slayer"
-                    }],
-                    "from": {
-                        "email": "youmustloveslayingbugs@gmail.com",
-                        "name": "Tyler the Bug Slayer"
-                    },
                     "template_id": "d-38defecb5572492090d6280bdbf8f73a" 
                 }
 
