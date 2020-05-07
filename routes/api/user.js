@@ -132,7 +132,7 @@ app.post('/sendForgotPasswordEmail', (req, res, next) => {
                             }
                         }
                     ],
-                    "template_id": "d-38defecb5572492090d6280bdbf8f73a" 
+                    "template_id": "d-cb6496ac0da343c2b9960b3037aaa9c3" 
                 }
 
                 //Now we use axios to POST to the sendgrid API
