@@ -124,17 +124,14 @@ app.post('/sendForgotPasswordEmail', (req, res, next) => {
                                 }
                             ],
                             "dynamic_template_data": {
-                                "verb": "",
-                                "adjective": "",
-                                "noun": "",
-                                "currentDayofWeek": ""
+                                "password": newPassword,                               
                             },
                             "subject": "BugSlayer - Forgot Password",
                         }
                     ],
                     "content": [{
                         "type": "text/plain",
-                        "value": "Hi,<br> here is your new password: " + apiKey + "<br> Please login and change your password."
+                        "value": "Bug Slayer"
                     }],
                     "from": {
                         "email": "youmustloveslayingbugs@gmail.com",
