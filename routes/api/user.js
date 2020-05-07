@@ -125,8 +125,7 @@ app.post('/sendForgotPasswordEmail', (req, res, next) => {
                             ],
                             "dynamic_template_data": {
                                 "password": newPassword,                               
-                            },
-                            "subject": "BugSlayer - Forgot Password",
+                            }
                         }
                     ],
                     "content": [{
@@ -136,10 +135,6 @@ app.post('/sendForgotPasswordEmail', (req, res, next) => {
                     "from": {
                         "email": "youmustloveslayingbugs@gmail.com",
                         "name": "Tyler the Bug Slayer"
-                    },
-                    "reply_to": {
-                        "email": req.body.email,
-                        "name": "Registered User"
                     },
                     "template_id": "d-38defecb5572492090d6280bdbf8f73a" 
                 }
