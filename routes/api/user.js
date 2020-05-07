@@ -106,7 +106,7 @@ app.post('/sendForgotPasswordEmail', (req, res, next) => {
                 }
                 let sendGridAPIConfig = {
                     headers: {
-                        "Authorization": "Bearer" + apikey,
+                        "Authorization": "Bearer " + apikey,
                         "Content-Type": "application/json"
                     }
                 }
