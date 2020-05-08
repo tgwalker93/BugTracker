@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { Col, Row, Container } from "../../components/Grid";
 import { BugListTableRow } from "../../components/BugListTableRow";
 import { Input, Button, TextArea } from "../../components/Form";
+import {BugCommentContainer, BugCommentPanel } from "../../components/BugCommentContainer";
 import Cookies from 'universal-cookie';
 import API from "../../utils/API";
 import "./bug-view.css";
@@ -36,7 +37,14 @@ class BugViewPage extends Component {
             sampleBugViewTableData: [{ id: "1", bugTitle: "Title A", bugDescription: "Test A" }, { id: "2", bugTitle: "Title B", bugDescription: "Test B" }, { id: "3", bugTitle: "Title C", bugDescription: "Test C"}],
             bugData: [],
             bugTitleInModal: "",
+            bugCommentsInModal: [],
+            users: [{text: 'Tyler', id: '1'}, {text: 'Tawny', id: '2'}, {text: 'Anthony', id: '3'}, {text: 'Arthur', id:'4'}],
+            currentBugCommentInModal:"",
             bugDescriptionInModal: "",
+            bugStatusInModal: "",
+            bugUserAssignedInModal: "",
+            userFilter: "",
+            statusFilter: ""
         };
 
     }
@@ -76,13 +84,19 @@ class BugViewPage extends Component {
     //************************** DB METHODS ************** THESE METHODS SAVE, EDIT, GET BUGS FROM DB *******************************************
     saveNewBugInDB = () => {
 
+        console.log("Im in saveNewBugIn DB");
+    
+
         let bugObj = {
             id: this.state.bugData.length,
             mongoID: this.state.bugData.length,
             currentBugIndex: this.state.bugData.length,
             bugTitle: this.state.bugTitleInModal,
-            bugDescription: this.state.bugDescriptionInModal
+            bugDescription: this.state.bugDescriptionInModal,
+            userAssigned: this.state.bugUserAssignedInModal,
+            status: this.state.bugStatusInModal
         }
+        console.log(bugObj);
         API.saveBug(bugObj)
             .then(response => {
 
@@ -107,6 +121,8 @@ class BugViewPage extends Component {
     }
 
     updateBugInDB = () => {
+        console.log("I'm in the update bug in DB");
+        console.log(this.state.selectedBug);
         API.updateBug(this.state.selectedBug)
             .then(response => {
 
@@ -134,7 +150,9 @@ class BugViewPage extends Component {
                             mongoID: response.data[this.state.currentBugIndex]._id,
                             id: this.state.currentBugIndex,
                             bugTitle: response.data[this.state.currentBugIndex].bugTitle,
-                            bugDescription: response.data[this.state.currentBugIndex].bugDescription
+                            bugDescription: response.data[this.state.currentBugIndex].bugDescription,
+                            userAssigned: response.data[this.state.currentBugIndex].userAssigned,
+                            status: response.data[this.state.currentBugIndex].status
                         })
                         this.setState({ currentBugIndex: this.state.currentBugIndex + 1 });
                         console.log(bugs);
@@ -178,6 +196,53 @@ class BugViewPage extends Component {
                 }
             })
     }
+
+
+    // Below methods are related to bug comments
+    addBugComment() {
+        let currentBug = this.state.bugData[this.state.currentBugIndex];
+        if(currentBug){
+            currentBug.text = this.state.currentBugCommentInModal;
+       
+
+        console.log("Im in the addBugComment Method on bugview page. Below is currentBug");
+        console.log(currentBug);
+        if (this.state.currentBugCommentInModal) {
+            API.saveBugComment(currentBug)
+                .then(res => this.renderBugComments(currentBug))
+                .catch(err => console.log(err));
+        }
+
+         }
+
+    };
+    renderBugComments(bugData) {
+
+        console.log("im in the render bug data on the front end");
+        console.log(bugData);
+        API.getBugComments(bugData)
+            .then(res => {
+                console.log("I got my res from render bug comments");
+                console.log(res);
+                //var bugCommentsArr = [];
+                // if(res.data.bugComment == null){
+                //     bugCommentsArr = [];
+                // }
+                this.setState({
+                    bugCommentsInModal: res.data.bugComments
+                })
+            })
+            .catch(err => console.log(err));
+    }
+
+    deleteBugComment(bugComment) {
+        API.deleteBugComment(bugComment)
+            .then(res => {
+                this.renderBugComments(this.state.bugData[this.state.currentBugIndex]);
+            })
+            .catch(err => console.log(err));
+
+    }
     // ****************** END OF DB METHODS*******************************************
 
 
@@ -189,12 +254,20 @@ class BugViewPage extends Component {
             //UPDATE THE BUG DATA LOCALLY BEFORE PUSHING TO DB
             this.state.bugData[this.state.currentBugIndex].bugTitle = this.state.bugTitleInModal;
             this.state.bugData[this.state.currentBugIndex].bugDescription = this.state.bugDescriptionInModal;
+            this.state.bugData[this.state.currentBugIndex].userAssigned = this.state.bugUserAssignedInModal;
+            this.state.bugData[this.state.currentBugIndex].status = this.state.bugStatusInModal;
+
+
             this.setState({selectedBug: this.state.bugData[this.state.currentBugIndex]});
             this.updateBugInDB();
         }
     }
     closeModal = () => {
         this.setState({ showModal: false, bugTitleInModal:"", bugDescriptionInModal: "" });
+        console.log("I'm in closemodal!! Below is the bug object");
+        console.log(this.state.bugData[this.state.currentIndex]);
+        console.log(this.state.bugUserAssignedInModal);
+        console.log(this.state.bugStatusInModal);
     }
     //*********************** END OF MODAL BUTTON CLICK METHODS ****************************
 
@@ -210,10 +283,12 @@ class BugViewPage extends Component {
             bugDescriptionInModal: bugClickedOn.bugDescription, 
             isNewBug: false, 
             selectedBug: bugClickedOn });
+        this.renderBugComments(bugClickedOn);
     }
     deleteBugButton(bugClickedOn){ 
         console.log("Delete Bug Clicked on!!! ");
         this.deleteBugInDB(bugClickedOn);
+        this.renderBugComments(bugClickedOn);
     }
 
     createNewBugButton = () => {
@@ -241,22 +316,32 @@ class BugViewPage extends Component {
                         </div>
                         <Link to="/profile" className="log" ><Button>View Profile</Button></Link>
                         <br />
-                        <p><strong>Assignee </strong> </p>
-                         <select>
-                            <option value=""></option>
-                            <option value="Tyler">Tyler</option>
-                            <option value="Brian">Tawny</option>
-                            <option value="Brian">Anthony</option>
-                            <option value="Brian">Arthur</option>
+                        <br />
+                        <p><strong>Assignee </strong> </p> 
+                        <select value={this.state.userFilter} onChange={this.handleChange.bind(this)} id="userFilter" name="userFilter">
+                            <option className="dropdown-item" href="#" value=""></option>
+                            <option className="dropdown-item" href="#" value="Tyler">Tyler</option>
+                            <option className="dropdown-item" href="#" value="Brian">Tawny</option>
+                            <option className="dropdown-item" href="#" value="Brian">Anthony</option>
+                            <option className="dropdown-item" href="#" value="Brian">Arthur</option>
 	                    </select>
+                        <p><strong>Status</strong></p> 
+                        <select value={this.state.statusFilter} onChange={this.handleChange.bind(this)} id="statusFilter" name="statusFilter">
+                            <option value=""></option>
+                            <option className="dropdown-item" href="#" value="Open">Open</option>
+                            <option className="dropdown-item" href="#" value="In Development">In Development</option>
+                            <option className="dropdown-item" href="#" value="Needs Testing">Needs Testing</option>
+                            <option className="dropdown-item" href="#" value="Completed">Completed</option>
+                        </select>
                             <br />
                                 <br />
                         {this.state.bugData.length ? (
                         <table id="bugViewTable_Table" className="table table-hover bugViewTable_Table">
                             <thead id="bugViewTable_head" className="thead-dark">
                                             <tr>
-                                    <th className="bugViewTable_th" scope="col">Bug Title</th>
-                                    <th className="bugViewTable_th" scope="col">Bug Description</th>
+                                    <th className="bugViewTable_th" scope="col">Title</th>
+                                    <th className="bugViewTable_th" scope="col">User Assigned</th>
+                                    <th className="bugViewTable_th" scope="col">Status</th>
                                     <th className="bugViewTable_th" scope="col"></th>
                                     <th className="bugViewTable_th" scope="col"></th>
                                             </tr>
@@ -266,7 +351,8 @@ class BugViewPage extends Component {
                                     return(
                                         <tr className="bugViewTable_tr" key={bug.id}>
                                             <td className="bugViewTable_td">{bug.bugTitle}</td>
-                                            <td className="bugViewTable_td">{bug.bugDescription}</td>
+                                            <td className="bugViewTable_td">{bug.userAssigned}</td>
+                                            <td className="bugViewTable_td">{bug.status}</td>
                                             <td id="editColumn" className="bugViewTable_td">                            
                                                 <Button variant="primary" onClick={() => this.editBugButton(bug)}>
                                                     Edit
@@ -302,6 +388,75 @@ class BugViewPage extends Component {
 
 
                                 <TextArea label="Bug Description" onBlur={this.formatInput.bind(this)} value={this.state.bugDescriptionInModal} id="bugDescriptionInModal" onChange={this.handleChange.bind(this)} name="bugDescriptionInModal" />
+                                <br />
+                                <br />
+                                <label><strong>Assignee</strong></label>
+                                <select value={this.state.bugUserAssignedInModal} onChange={this.handleChange.bind(this)} id="bugUserAssignedInModal" name="bugUserAssignedInModal">
+                                    <option className="dropdown-item" href="#" value=""></option>
+                                    <option className="dropdown-item" href="#" value="Tawny">Tawny</option>
+                                    <option className="dropdown-item" href="#" value="Anthony">Anthony</option>
+                                    <option className="dropdown-item" href="#" value="Tyler">Tyler</option>
+                                    <option className="dropdown-item" href="#" value="Arthur">Arthur</option>
+                                </select>
+
+                                <br />
+
+                                <br />
+                                <label><strong>Status</strong></label>
+                                <select value={this.state.bugStatusInModal} onChange={this.handleChange.bind(this)} id="bugStatusInModal" name="bugStatusInModal">
+                                    <option className="dropdown-item" href="#" value=""></option>
+                                    <option className="dropdown-item" href="#" value="Open">Open</option>
+                                    <option className="dropdown-item" href="#" value="In Development">In Development</option>
+                                    <option className="dropdown-item" href="#" value="Needs Testing">Needs Testing</option>
+                                    <option className="dropdown-item" href="#" value="Completed">Completed</option>
+                                </select>
+
+                                <br />
+                                <br />
+                                {/* BUG COMMENT SECTION */}
+
+                                {this.state.isNewBug ? 
+
+                                    "": <div>
+
+                                        <TextArea placeholder='Bug Comment' rows='4' cols='60'
+                                            id="currentBugCommentInModal"
+                                            onBlur={this.formatInput.bind(this)}
+                                            value={this.state.currentBugCommentInModal}
+                                            onChange={this.handleChange.bind(this)}
+                                            name="currentBugCommentInModal"
+                                        />
+                                        <Button className='btn btn-success save' onClick={() => this.addBugComment()}>Save Comment</Button>
+                                        <Button className='btn btn-danger note-delete noteModal' onClick={() => this.closeModal()}>X</Button>
+
+
+                                        <hr />
+                                        {this.state.bugCommentsInModal.length ? (
+                                            <BugCommentContainer>
+                                                <div className="bugCommentContainer">
+                                                    {this.state.bugCommentsInModal.map(bugComment => {
+                                                        let boundBugCommentClick = this.deleteBugComment.bind(this, bugComment);
+                                                        return (
+                                                            <BugCommentPanel key={bugComment._id} text={bugComment.text}>
+                                                                <div>
+                                                                    <button className='btn btn-danger bugComment-delete insideNote' onClick={boundBugCommentClick}> X </button>
+                                                                </div>
+
+                                                            </BugCommentPanel>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </BugCommentContainer>
+                                        ) : (
+                                                <h3> There are no comments! </h3>
+                                            )}
+
+                                    </div>
+                                }
+
+                                {/* END OF BUG COMMENT SECTION */}
+
+
 
                             </Modal.Body>
                             <Modal.Footer>

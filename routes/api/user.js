@@ -108,7 +108,7 @@ app.post('/sendForgotPasswordEmail', (req, res, next) => {
                                 }
                             ],
                             "dynamic_template_data": {
-                                "password": newPassword,                               
+                                "password": newPassword                             
                             }
                         }
                     ],

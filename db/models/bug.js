@@ -30,7 +30,12 @@ const BugSchema = new Schema({
         subTasks: {
             type: Object,
             required: false
-        }
+        },
+        // This only saves one comment's ObjectId, ref refers to the Note model
+        bugComments: [{
+            type: Schema.Types.ObjectId,
+            ref: "BugComment"
+        }]
 });
 
 // Define schema methods

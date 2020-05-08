@@ -5,6 +5,7 @@ var app = express.Router();
 
 //Database Models 
 var Bug = require("../../db/models/bug.js");
+var BugComment = require("../../db/models/bugComment.js");
 
 
 //TODO MOVE THE DATA ACCESS METHODS TO A CONTROLLER!!!
@@ -43,7 +44,9 @@ app.post("/deleteBug", function (req, res) {
 
     let update = {
         bugTitle: req.body.bugTitle,
-        bugDescription: req.body.bugDescription
+        bugDescription: req.body.bugDescription,
+        userAssigned: req.body.userAssigned,
+        status: req.body.status
     };
 
     console.log(req.body.mongoID);
@@ -83,7 +86,9 @@ app.post("/updateBug", function (req, res) {
     }
 
     let update = { bugTitle: req.body.bugTitle, 
-        bugDescription: req.body.bugDescription };
+        bugDescription: req.body.bugDescription,
+    userAssigned: req.body.userAssigned,
+    status: req.body.status };
 
     console.log(req.body.mongoID);
 
@@ -117,7 +122,9 @@ app.post("/saveBug", function (req, res) {
 
     var resultObj = {
             bugTitle: req.body.bugTitle,
-            bugDescription: req.body.bugDescription
+            bugDescription: req.body.bugDescription,
+            userAssigned: req.body.userAssigned,
+            status: req.body.status 
 
     };
     console.log(resultObj);
@@ -145,5 +152,95 @@ app.post("/saveBug", function (req, res) {
     });
 
 });
+
+
+//Bug Comments Routes BEGIN ---------------------------------------------------------------
+
+//DELETE A Bug Comment
+app.post("/deleteBugComment/:id", function (req, res) {
+
+    console.log("I'm in deleteBugComment backend");
+    console.log(req.params.id);
+    BugComment.findByIdAndRemove(req.params.id, function (error, doc) {
+        // Log any errors
+        if (error) {
+            console.log(error);
+        }
+        else {
+            // Or send the document to the browser
+            res.send(doc);
+        }
+    });
+
+});
+
+//SAVE A Bug Comment
+app.post("/saveBugComment", function (req, res) {
+
+    console.log("I'm in the save bug comment backend");
+    console.log(req.body);
+    // Create a new bug comment and pass the req.body to the entry
+    let result = {
+        title: req.body.text,
+        text: req.body.text
+    }
+
+    console.log(result);
+    var newBugComment = new BugComment(result);
+
+    // And save the new bug comment the db
+    newBugComment.save(function (error, doc) {
+        // Log any errors
+        if (error) {
+            console.log(error);
+        }
+        // Otherwise
+        else {
+            // Use the bug id to find and update its' comment
+            Bug.findOneAndUpdate({ "_id": req.body.mongoID }, { $push: { "bugComments": doc._id } },
+                { safe: true, upsert: true })
+                // Execute the above query
+                .exec(function (err, doc) {
+
+                    console.log("Found bug and updated? Below is bug");
+                    console.log(doc);
+                    // Log any errors
+                    if (err) {
+                        console.log(err);
+                    }
+                    else {
+                        // Or send the document to the browser
+                        res.send(doc);
+                    }
+                });
+        }
+    });
+
+});
+
+//SEARCH Bug Comments BY BUG ID
+app.get("/getBugComments/:id", function (req, res) {
+
+    console.log("i'm in the GET BUG COMMENTS BACK END");
+    // Using the id passed in the id parameter, prepare a query that finds the matching one in our db...
+    bug = req.body._id;
+    console.log(req.params.id);
+    Bug.findOne({ "_id": req.params.id })
+        // ..and populate all of the bug comments associated with it
+        .populate("bugComments")
+        // now, execute our query
+        .exec(function (error, doc) {
+            // Log any errors
+            if (error) {
+                console.log(error);
+            }
+            // Otherwise, send the doc to the browser as a json object
+            else {
+                res.json(doc);
+            }
+        });
+});
+
+//Bug Comments END -----------------------------------------------------------
 
 module.exports = app;
