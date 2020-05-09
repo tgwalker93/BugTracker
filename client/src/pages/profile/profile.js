@@ -18,16 +18,23 @@ class Profile extends Component {
             firstName:"",
             loggedIn: this.props.loggedIn,
             redirectTo: null,
-            changePasswordFieldsActive: false,
-            formErrors: { oldPassword: "", newPassword1and2:"" },
+            setPasswordFieldsActiveInModal: false,
+            setCreateOrganizationFieldsActiveInModal: false,
+            setJoinOrganizationFieldsActiveInModal: false,
+            formErrors: { oldPassword: "", newPassword1and2:"", organizationName:"", organizationID:"" },
             oldPassword: "",
             newPassword1: "",
             newPassword2: "",
+            organizationNameInModal: "",
+            organizationIDInModal: "",
             oldPasswordValid: false,
             newPassword1and2Valid: false,
+            organizationNameValid: false,
+            organizationIDValid: false,
             showModal: false,
             currentModalTitle: "",
-            userData: []
+            userData: [],
+            organizations: []
         };
     }
 
@@ -35,6 +42,7 @@ class Profile extends Component {
       
         console.log("Component mounted in Profile, below is MongoID");
         console.log(this.props.mongoID);
+        this.getOrganizationsOfUserInDB();
         
     }
 
@@ -67,8 +75,7 @@ class Profile extends Component {
         //Validating between the new password field and "confirm password" field that they match and are greather than or equal to 6 characters
         newPassword1and2Valid = this.state.newPassword1 === this.state.newPassword2 && this.state.newPassword1.length >= 6;
         fieldValidationErrors.newPassword1and2Valid = "New password doesn't match or your password is less than 6 characters long.";
-
-    
+   
 
         //TODO --- HANDLE FORM VALIDATION
 
@@ -84,21 +91,14 @@ class Profile extends Component {
 
     
     handleChangePasswordButtonClick = event => {
-        event.preventDefault();
-
-
-
+        //event.preventDefault();
 
         this.setState({
             showModal: true,
             currentModalTitle: "Change Password",
+            setPasswordFieldsActiveInModal: true
         });
 
-
-        this.setState({
-            changePasswordFieldsActive: true
-        })
-   
 
     }
 
@@ -131,6 +131,138 @@ class Profile extends Component {
         this.setState({ showModal: false });
     }
     //*********************** END OF MODAL BUTTON CLICK METHODS ****************************
+
+    //*************************METHODS BELOW RELATED TO ORGANIZATION BUTTON CLICKS ******************/
+    handleEditOrganizationButtonClick(organizationClickedOn) {
+        //event.preventDefault();
+
+        this.setState({
+            showModal: true,
+            currentModalTitle: "Edit Organization",
+            setCreateOrganizationFieldsActiveInModal: true,
+            setPasswordFieldsActiveInModal: false
+        });
+    }
+    handleDeleteOrganizationButtonClick(organizationClickedOn) {
+        // console.log("Delete Bug Clicked on!!! ");
+        // this.deleteBugInDB(bugClickedOn);
+        // this.renderBugComments(bugClickedOn);
+    }
+    handleViewBugsOrganizationButtonClick(organizationClickedOn) {
+        // console.log("Delete Bug Clicked on!!! ");
+        // this.deleteBugInDB(bugClickedOn);
+        // this.renderBugComments(bugClickedOn);
+    }
+
+    handleCreateOrganizationButtonClick = event => {
+        this.setState({
+            showModal: true,
+            currentModalTitle: "Create Organization",
+            setPasswordFieldsActiveInModal: false,
+            setCreateOrganizationFieldsActiveInModal: true,
+            setJoinOrganizationFieldsActiveInmodal: false
+        });
+
+    }
+
+    handleJoinOrganizationButtonClick = event => {
+        this.setState({
+            showModal: true,
+            currentModalTitle: "Join Organization",
+            setPasswordFieldsActiveInModal: false,
+            setCreateOrganizationFieldsActiveInModal: false,
+            setJoinOrganizationFieldsActiveInModal: true
+        })
+
+    }
+
+    //*** METHODS BELOW RELATED TO DB WITH ORGANIZATIONS */ */
+    saveOrganizationInDB = () => {
+        let userObj = {
+            password: this.state.oldPassword,
+            newPassword: this.state.newPassword1,
+            username: this.props.username,
+            mongoID: this.props.mongoID,
+            organizationName: this.state.organizationNameInModal,
+            organizationID: this.state.organizationIDInModal
+        }
+
+        API.saveOrganizationInDB(userObj)
+            .then(response => {
+
+                if (!response.data.error) {
+                    console.log("SAVE ORGANIZATION successful in Profile Page, below is response.data");
+                    console.log(response.data);
+
+                } else {
+                    console.log("SAVE ORGANIZATION WAS A FAIL!!!! Below is the response.data");
+                    console.log(response.data);
+                    this.setState({ showModal: false });
+                }
+            })
+            .catch(err => console.log(err));
+
+    }
+
+    getOrganizationsOfUserInDB() {
+
+        let userObj = {
+            password: this.state.oldPassword,
+            newPassword: this.state.newPassword1,
+            username: this.props.username,
+            mongoID: this.props.mongoID
+        }
+
+        API.getOrganizationsOfUserInDB(userObj)
+            .then(response => {
+
+                if (!response.data.error) {
+                    //If we find no error, then we successful got the user's list of organizations. Update state with organizations.
+                    console.log("getOrganizationsOfUserInDB successful in Profile Page, below is response.data");
+                    console.log(response.data);
+
+                    this.setState({
+                        organizations: response.data.organizations
+                    })
+
+                } else {
+                    console.log("getOrganizationsOfUserInDB WAS A FAIL!!!! Below is the response.data");
+                    console.log(response.data);
+                    this.setState({ showModal: false });
+                }
+            })
+            .catch(err => console.log(err));
+    }
+
+    attachUserToOrganizationInDB() {
+        let userObj = {
+            password: this.state.oldPassword,
+            newPassword: this.state.newPassword1,
+            username: this.props.username,
+            mongoID: this.props.mongoID
+        }
+        API.attachUserToOrganizationInDB(userObj)
+            .then(response => {
+
+                if (!response.data.error) {
+                    //If we find no error, then we successful got the user's list of organizations. Update state with organizations.
+                    console.log("attachUserToOrganizationInDB successful in Profile Page, below is response.data");
+                    console.log(response.data);
+
+                    this.setState({
+                        organizations: response.data.organizations
+                    })
+
+                } else {
+                    console.log("attachUserToOrganizationInDB WAS A FAIL!!!! Below is the response.data");
+                    console.log(response.data);
+                    this.setState({ showModal: false });
+                    this.forceUpdate();
+                }
+            })
+            .catch(err => console.log(err));
+    }
+    
     
     render() {
         return (
@@ -146,8 +278,47 @@ class Profile extends Component {
 
                         <Link to="/bug-view" className="log" ><Button>View Bugs</Button></Link>
                         <Button onClick={this.handleChangePasswordButtonClick.bind(this)}>Change Password</Button>
+                        <Button onClick={this.handleCreateOrganizationButtonClick.bind(this)}>Create Organization</Button>
+                        <Button onClick={this.handleJoinOrganizationButtonClick.bind(this)}>Join Organization</Button>
+                        <br />
+                        <br />
+                        {this.state.organizations.length > 0 ? (
+                            <table id="organizationTable_Table" className="table table-hover bugViewTable_Table">
+                                <thead id="organizationTable_head" className="thead-dark">
+                                    <tr>
+                                        <th className="organizationTable_th" scope="col">Name</th>
+                                        <th className="organizationTable_th" scope="col">Organization ID</th>
+                                        <th className="organizationTable_th" scope="col"></th>
+                                        <th className="organizationTable_th" scope="col"></th>
+                                        <th className="organizationTable_th" scope="col"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {this.state.organizations.map(organization => {
+                                        return (
+                                            <tr className="organizationTable_tr" key={organization.id}>
+                                                <td className="organizationTable_td">{organization.name}</td>
+                                                <td className="organizationTable_td">{organization.organizationID}</td>
+                                                <td className="organizationTable_td"><Button variant="primary" onClick={() => this.handleViewBugsOrganizationButtonClick(organization)}>
+                                                    View Bugs
+                                                    </Button></td>
+                                                <td id="editColumn" className="organizationTable_td">
+                                                    <Button variant="primary" onClick={() => this.handleEditOrganizationButtonClick(organization)}>
+                                                        Edit
+                                                    </Button>
+                                                </td>
+                                                <td id="deleteColumn" className="organizationTable_td"> <Button variant="primary" onClick={() => this.handleCreatedOrganizationButtonClick(organization)}>Delete</Button></td>
+                                            </tr>
+                                        )
+                                    })}
+                                </tbody>
+                            </table>
 
-                        
+
+                        ) : (<h3> No Results to Display </h3>)}
+                        <br />
+                        <br />
+
                         {/* This modal will pop up for changing password! */}
                         <Modal show={this.state.showModal} animation={false}>
                             <Modal.Header>
@@ -155,7 +326,7 @@ class Profile extends Component {
                             </Modal.Header>
                             <Modal.Body>
 
-                                {this.state.changePasswordFieldsActive ?
+                                {this.state.setPasswordFieldsActiveInModal ?
                                     <div>
                                         <p>Old Password</p>
                                         <Input onBlur={this.formatInput.bind(this)}
@@ -187,16 +358,73 @@ class Profile extends Component {
 
                                     </div>
                                     :
-                                    ""}
+                                    <div>
+                                        {this.state.setPasswordFieldsActiveInModal ?
+                                        <div>
+                                            <p>Please enter the Organization ID of the organization you wish to join:</p>
+                                            <Input onBlur={this.formatInput.bind(this)}
+                                                isvalid={this.state.organizationIDValid.toString()}
+                                                fielderror={this.state.formErrors.organizationIDInModal}
+                                                formgroupclass={`form-group ${this.errorClass(this.state.formErrors.organizationID)}`}
+                                                value={this.state.organizationIDInModal}
+                                                id="organizationIDInModal" onChange={this.handleChange.bind(this)}
+                                                name="organizationIDInModal"></Input>
+                                            
+                                        </div>
+                                        :
+                                        <div>
+                                        <p>Organization Name</p>
+                                        <Input onBlur={this.formatInput.bind(this)}
+                                            isvalid={this.state.organizationNameValid.toString()}
+                                            fielderror={this.state.formErrors.oldPassword}
+                                            formgroupclass={`form-group ${this.errorClass(this.state.formErrors.organizationName)}`}
+                                            value={this.state.organizationNameInModal}
+                                            id="organizationNameInModal"
+                                            onChange={this.handleChange.bind(this)}
+                                            name="organizationNameInModal"></Input>
+
+                                        <p>Organization ID (Use this number to invite people)</p>
+                                        <Input onBlur={this.formatInput.bind(this)}
+                                            isvalid={this.state.organizationIDValid.toString()}
+                                            fielderror={this.state.formErrors.organizationIDInModal}
+                                            formgroupclass={`form-group ${this.errorClass(this.state.formErrors.organizationID)}`}
+                                            value={this.state.organizationIDInModal}
+                                            id="organizationIDInModal" onChange={this.handleChange.bind(this)}
+                                            name="organizationIDInModal"></Input>
+                                        </div>
+
+                                        }
+
+                                    </div>
+                                    
+                                    
+                                    
+                                    
+                                    }
+
+
+
 
                             </Modal.Body>
                             <Modal.Footer>
                                 <Button variant="secondary" onClick={this.closeModal}>
                                     Close
                                   </Button>
-                                <Button variant="primary" onClick={this.handleUpdatePassword}>
-                                    Save Changes
-                              </Button>
+                                {this.state.setPasswordFieldsActiveInModal ?
+                                        <Button variant="primary" onClick={this.handleUpdatePassword}>
+                                        Save Changes
+                                        </Button>
+                                    :
+
+
+                                    <div>
+                                        {this.state.setJoinOrganizationFieldsActiveInModal ?
+                                            <Button variant="primary" onClick={this.attachUserToOrganizationInDB}>
+                                                Submit</Button> : 
+                                            <Button variant="primary" onClick={this.saveOrganizationInDB}>
+                                                Submit</Button>}
+                                    </div>
+                                    }
                             </Modal.Footer>
                         </Modal>
 

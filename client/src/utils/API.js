@@ -62,6 +62,23 @@ export default {
         console.log("I'm in getbugcomments front end API.JS");
         console.log(bugData.mongoID);
         return axios.get("/api/bug/getBugComments/" + bugData.mongoID);
+    },
+
+    // ORGANiZATION CALLS
+    saveOrganizationInDB: function(userData) {
+        console.log("I'm in the saveOrganizationInDB method in API file");
+        console.log(userData);
+        return axios.post("/api/organization/saveOrganization", userData);
+    },
+    getOrganizationsOfUserInDB: function(userData){
+        console.log("I'm in the getOrganizationsOfUserInDB method in API file");
+        console.log(userData);
+        return axios.get("/api/organization/getAllOrganizationsOfUser/" + userData.mongoID);
+    },
+    attachUserToOrganizationInDB: function (userData) {
+        console.log("I'm in the getOrganizationsOfUserInDB method in API file");
+        console.log(userData);
+        return axios.post("/api/organization/attachUserToOrganization", userData);
     }
 
 };

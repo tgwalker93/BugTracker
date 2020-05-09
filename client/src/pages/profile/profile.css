@@ -1,0 +1,13 @@
+#organizationTable_head {
+    background-color: gray;
+}
+
+.organizationTable_td {
+    background-color: lightgray;
+}
+
+
+.organizationTable_Table, .organizationTable_th, .organizationTable_td {
+      border: 1px solid black !important;
+          text-align: center;
+}

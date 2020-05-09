@@ -36,6 +36,7 @@ class BugViewPage extends Component {
             showModal2: false,
             sampleBugViewTableData: [{ id: "1", bugTitle: "Title A", bugDescription: "Test A" }, { id: "2", bugTitle: "Title B", bugDescription: "Test B" }, { id: "3", bugTitle: "Title C", bugDescription: "Test C"}],
             bugData: [],
+            filteredBugData: [],
             bugTitleInModal: "",
             bugCommentsInModal: [],
             users: [{text: 'Tyler', id: '1'}, {text: 'Tawny', id: '2'}, {text: 'Anthony', id: '3'}, {text: 'Arthur', id:'4'}],
@@ -160,8 +161,12 @@ class BugViewPage extends Component {
                     this.setState({ bugData: bugs });
                     console.log("IF IM HEre THEN THE DATA JUST UPDATED!!!!");
                     this.forceUpdate();
-                    console.log("Here is bug data!");
+                    console.log("Here is bug data from inside callback of API.getAllBugs in bug-view page!");
                     console.log(bugs);
+
+                    //At default, we want to show all bugs in the table
+                    this.putAllBugsIntoFilteredArray();
+                    this.forceUpdate();
                 } else {
                     this.setState({ errorResponse: response })
                 }
@@ -302,9 +307,71 @@ class BugViewPage extends Component {
     componentDidMount() {
         console.log("Component Did Mount has been called");
         this.getBugsFromDB();
+        
     } 
 
+    putAllBugsIntoFilteredArray() {
+        this.setState({filteredBugData: []});
+        this.state.bugData.map(bug => {
+            return this.state.filteredBugData.push(bug);
+        });
+    }
+
     render() {
+
+
+        if (this.state.userFilter !== "" && this.state.bugFilter !== ""){
+            this.state.filteredBugData  = [];
+            this.state.bugData.map(bug => {
+                console.log("status filter is " + this.state.statusFilter);
+                console.log("bug.status is " + bug.status);
+                console.log("user filter is " + this.state.userFilter);
+                console.log("bug.userFilter is " + bug.userAssigned);
+                
+               var assigneeFilterIsActive = false;
+                var statusFilterIsActive = false;
+                //APPLY THE FILTERS
+            if (this.state.statusFilter === bug.status && this.state.statusFilter !== "")  {
+
+                statusFilterIsActive = true;
+            }
+            
+            if(this.state.userFilter === bug.userAssigned && this.state.userFilter !== "") {
+                assigneeFilterIsActive = true;
+            }
+
+            console.log("statusFilterIsActive: " + statusFilterIsActive);
+            console.log("AssigneeFilterIsActive: " + assigneeFilterIsActive);
+
+                if (statusFilterIsActive && assigneeFilterIsActive){
+                    console.log("StatusFilter and Assigneefilter active");
+                return this.state.filteredBugData.push(bug);
+                } else if (statusFilterIsActive && this.state.userFilter === ""){
+                    
+                    console.log("Just statusfilter is active");
+                    return this.state.filteredBugData.push(bug);
+                }
+                else if (assigneeFilterIsActive && this.state.statusFilter === "") {
+                    console.log("Just assignee filter is active");
+                    return this.state.filteredBugData.push(bug);
+                }
+                console.log("_------------------");
+        });
+
+        console.log("Before RENDER() return, here is the filtered data!!!");
+        console.log(this.state.filteredBugData);
+          } else {
+            this.state.filteredBugData = [];
+            this.state.bugData.map(bug => {
+                console.log("status filter is " + this.state.statusFilter);
+                console.log("bug.status is " + bug.status);
+                console.log("user filter is " + this.state.userFilter);
+                console.log("bug.userFilter is " + bug.userFilter);
+                    return this.state.filteredBugData.push(bug);
+
+            });
+
+          }
         return (
              <Container id="containerViewBugs" fluid="true">
                 <Row id="mainRow">
@@ -317,22 +384,27 @@ class BugViewPage extends Component {
                         <Link to="/profile" className="log" ><Button>View Profile</Button></Link>
                         <br />
                         <br />
-                        <p><strong>Assignee </strong> </p> 
-                        <select value={this.state.userFilter} onChange={this.handleChange.bind(this)} id="userFilter" name="userFilter">
-                            <option className="dropdown-item" href="#" value=""></option>
-                            <option className="dropdown-item" href="#" value="Tyler">Tyler</option>
-                            <option className="dropdown-item" href="#" value="Brian">Tawny</option>
-                            <option className="dropdown-item" href="#" value="Brian">Anthony</option>
-                            <option className="dropdown-item" href="#" value="Brian">Arthur</option>
-	                    </select>
-                        <p><strong>Status</strong></p> 
-                        <select value={this.state.statusFilter} onChange={this.handleChange.bind(this)} id="statusFilter" name="statusFilter">
-                            <option value=""></option>
-                            <option className="dropdown-item" href="#" value="Open">Open</option>
-                            <option className="dropdown-item" href="#" value="In Development">In Development</option>
-                            <option className="dropdown-item" href="#" value="Needs Testing">Needs Testing</option>
-                            <option className="dropdown-item" href="#" value="Completed">Completed</option>
-                        </select>
+                        <Row>
+                            <Col size="sm-3">
+                                <p><strong>Assignee </strong> </p>
+                                <select value={this.state.userFilter} onChange={this.handleChange.bind(this)} id="userFilter" name="userFilter">
+                                    <option className="dropdown-item" href="#" value=""></option>
+                                    <option className="dropdown-item" href="#" value="Tyler">Tyler</option>
+                                    <option className="dropdown-item" href="#" value="Tawny">Tawny</option>
+                                    <option className="dropdown-item" href="#" value="Anthony">Anthony</option>
+                                    <option className="dropdown-item" href="#" value="Arthur">Arthur</option>
+                                </select>
+                            </Col>
+                            <Col size="sm-3">
+                                <p><strong>Status</strong></p>
+                                <select value={this.state.statusFilter} onChange={this.handleChange.bind(this)} id="statusFilter" name="statusFilter">
+                                    <option className="dropdown-item" href="#" value=""></option>
+                                    <option className="dropdown-item" href="#" value="Open">Open</option>
+                                    <option className="dropdown-item" href="#" value="In Development">In Development</option>
+                                    <option className="dropdown-item" href="#" value="Needs Testing">Needs Testing</option>
+                                </select>
+                            </Col>
+                        </Row>
                             <br />
                                 <br />
                         {this.state.bugData.length ? (
@@ -346,22 +418,25 @@ class BugViewPage extends Component {
                                     <th className="bugViewTable_th" scope="col"></th>
                                             </tr>
                                 </thead>
-                                        <tbody>
-                                    {this.state.bugData.map(bug => {
-                                    return(
-                                        <tr className="bugViewTable_tr" key={bug.id}>
-                                            <td className="bugViewTable_td">{bug.bugTitle}</td>
-                                            <td className="bugViewTable_td">{bug.userAssigned}</td>
-                                            <td className="bugViewTable_td">{bug.status}</td>
-                                            <td id="editColumn" className="bugViewTable_td">                            
-                                                <Button variant="primary" onClick={() => this.editBugButton(bug)}>
-                                                    Edit
-                                            </Button>
-                                            </td>
-
-                                            <td id="deleteColumn" className="bugViewTable_td"> <Button variant="primary" onClick={() => this.deleteBugButton(bug)}>Delete</Button></td>
-                                            </tr>
-                                    )
+                                        <tbody>  
+                                            {console.log("here is the filtered data")}
+                                            {console.log(this.state.filteredBugData)}                                       
+                                    {this.state.filteredBugData.map(bug => {
+                                            return(
+                                                <tr className="bugViewTable_tr" key={bug.id}>
+                                                    {console.log("I'm in filteredBudata MAP, below is current BUG")}
+                                                    {console.log(bug)}
+                                                    <td className="bugViewTable_td">{bug.bugTitle}</td>
+                                                    <td className="bugViewTable_td">{bug.userAssigned}</td>
+                                                    <td className="bugViewTable_td">{bug.status}</td>
+                                                    <td id="editColumn" className="bugViewTable_td">                            
+                                                        <Button variant="primary" onClick={() => this.editBugButton(bug)}>
+                                                            Edit
+                                                    </Button>
+                                                    </td>
+                                                    <td id="deleteColumn" className="bugViewTable_td"> <Button variant="primary" onClick={() => this.deleteBugButton(bug)}>Delete</Button></td>
+                                                    </tr>
+                                            )
                                 })}
                                     </tbody>
                                     </table>
@@ -383,8 +458,8 @@ class BugViewPage extends Component {
                             </Modal.Header>
                             <Modal.Body>
 
-                                <p>Bug Title</p>
-                                <Input onBlur={this.formatInput.bind(this)} value={this.state.bugTitleInModal} id="bugTitleInModal" onChange={this.handleChange.bind(this)} name="bugTitleInModal" />
+
+                                <Input label="Bug Title" onBlur={this.formatInput.bind(this)} value={this.state.bugTitleInModal} id="bugTitleInModal" onChange={this.handleChange.bind(this)} name="bugTitleInModal" />
 
 
                                 <TextArea label="Bug Description" onBlur={this.formatInput.bind(this)} value={this.state.bugDescriptionInModal} id="bugDescriptionInModal" onChange={this.handleChange.bind(this)} name="bugDescriptionInModal" />
@@ -411,6 +486,7 @@ class BugViewPage extends Component {
                                     <option className="dropdown-item" href="#" value="Completed">Completed</option>
                                 </select>
 
+
                                 <br />
                                 <br />
                                 {/* BUG COMMENT SECTION */}
@@ -418,16 +494,6 @@ class BugViewPage extends Component {
                                 {this.state.isNewBug ? 
 
                                     "": <div>
-
-                                        <TextArea placeholder='Bug Comment' rows='4' cols='60'
-                                            id="currentBugCommentInModal"
-                                            onBlur={this.formatInput.bind(this)}
-                                            value={this.state.currentBugCommentInModal}
-                                            onChange={this.handleChange.bind(this)}
-                                            name="currentBugCommentInModal"
-                                        />
-                                        <Button className='btn btn-success save' onClick={() => this.addBugComment()}>Save Comment</Button>
-                                        <Button className='btn btn-danger note-delete noteModal' onClick={() => this.closeModal()}>X</Button>
 
 
                                         <hr />
@@ -450,6 +516,17 @@ class BugViewPage extends Component {
                                         ) : (
                                                 <h3> There are no comments! </h3>
                                             )}
+
+
+                                        <Input placeholder='Bug Comment'
+                                            id="currentBugCommentInModal"
+                                            onBlur={this.formatInput.bind(this)}
+                                            value={this.state.currentBugCommentInModal}
+                                            onChange={this.handleChange.bind(this)}
+                                            name="currentBugCommentInModal"
+                                        />
+                                        <Button className='btn btn-success save' onClick={() => this.addBugComment()}>Save Comment</Button>
+                                        <Button className='btn btn-danger note-delete noteModal' onClick={() => this.closeModal()}>X</Button>
 
                                     </div>
                                 }

@@ -12,10 +12,6 @@ const UserSchema = new Schema({
             type: String,
             required: true
         },
-        username: {
-            type: String,
-            required: true
-        },
         firstName: {
             type: String,
             required: true
@@ -24,10 +20,11 @@ const UserSchema = new Schema({
             type: String,
             required: true
         },
-        organizations: {
-            type: Array,
-            required: false,
-        }
+        // This only saves one comment's ObjectId, ref refers to the Organization model
+        organizations: [{
+            type: Schema.Types.ObjectId,
+            ref: "Organization"
+        }]
 });
 
 //Define schema methods
