@@ -320,7 +320,7 @@ class BugViewPage extends Component {
     render() {
 
 
-        if (this.state.userFilter !== "" && this.state.bugFilter !== ""){
+        if (this.state.userFilter !== "" || this.state.statusFilter !== ""){
             this.state.filteredBugData  = [];
             this.state.bugData.map(bug => {
                 console.log("status filter is " + this.state.statusFilter);
@@ -366,7 +366,7 @@ class BugViewPage extends Component {
                 console.log("status filter is " + this.state.statusFilter);
                 console.log("bug.status is " + bug.status);
                 console.log("user filter is " + this.state.userFilter);
-                console.log("bug.userFilter is " + bug.userFilter);
+                console.log("bug.userAssigned is " + bug.userAssigned);
                     return this.state.filteredBugData.push(bug);
 
             });

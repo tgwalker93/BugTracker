@@ -107,6 +107,7 @@ app.get("/getAllOrganizationsOfUser/:mongoID", function(req, res) {
 //attach user to organization
 app.post("/attachUserToOrganization", function (req, res) {
     console.log("i'm in the attachedUserToOrganization BACK END");
+    
 
 });
 
