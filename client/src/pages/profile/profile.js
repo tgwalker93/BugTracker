@@ -143,11 +143,6 @@ class Profile extends Component {
             setPasswordFieldsActiveInModal: false
         });
     }
-    handleDeleteOrganizationButtonClick(organizationClickedOn) {
-        // console.log("Delete Bug Clicked on!!! ");
-        // this.deleteBugInDB(bugClickedOn);
-        // this.renderBugComments(bugClickedOn);
-    }
     handleViewBugsOrganizationButtonClick(organizationClickedOn) {
         // console.log("Delete Bug Clicked on!!! ");
         // this.deleteBugInDB(bugClickedOn);
@@ -266,6 +261,30 @@ class Profile extends Component {
             })
             .catch(err => console.log(err));
     }
+
+    handleDeleteOrganizationInDB(organizationClickedOn) {
+        // console.log("Delete Bug Clicked on!!! ");
+        // this.deleteBugInDB(bugClickedOn);
+        // this.renderBugComments(bugClickedOn);
+        var isUserOrganizationOwner = false;
+        if (this.props.mongoID === organizationClickedOn.userWhoCreatedOrgMongoID){
+            isUserOrganizationOwner = true;
+        }
+        var organizationObj = {
+            organizationMongoID: organizationClickedOn._id,
+            userMongoID: this.props.mongoID,
+            organizationData: organizationClickedOn,
+            isUserOrganizationOwner: isUserOrganizationOwner
+
+        }
+        API.deleteOrganizationInDB(organizationObj)
+            .then(res => {
+
+                this.getOrganizationsOfUserInDB();
+                this.forceUpdate();
+            })
+            .catch(err => console.log(err));
+    }
     
     
     render() {
@@ -312,11 +331,19 @@ class Profile extends Component {
                                                     <Link to={{pathname: "/bug-view", state: {organizationMongoID: organization._id}}} className="log" ><Button>View Bugs</Button></Link>
                                                     </td>
                                                 <td id="editColumn" className="organizationTable_td">
-                                                    <Button variant="primary" onClick={() => this.handleEditOrganizationButtonClick(organization)}>
-                                                        Edit
-                                                    </Button>
+                                                    {this.props.mongoID === organization.userWhoCreatedOrgMongoID ?
+                                                        <Button variant="primary" onClick={() => this.handleEditOrganizationButtonClick(organization)}>
+                                                            Edit
+                                                        </Button> : ""
+
+                                                    }
                                                 </td>
-                                                <td id="deleteColumn" className="organizationTable_td"> <Button variant="primary" onClick={() => this.handleCreatedOrganizationButtonClick(organization)}>Delete</Button></td>
+                                                <td id="deleteColumn" className="organizationTable_td">
+                                                    {this.props.mongoID === organization.userWhoCreatedOrgMongoID ?
+                                                        <Button variant="primary" onClick={() => this.handleDeleteOrganizationInDB(organization)}>Delete</Button> 
+                                                        : ""
+                                                    }
+                                                     </td>
                                             </tr>
                                         )
                                     })}

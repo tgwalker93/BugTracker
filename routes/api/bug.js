@@ -90,16 +90,7 @@ app.post("/deleteBug", function (req, res) {
             else {
                 console.log("bug delete back-end was successful!");
                 //Deleting the bug was a success, now we need to make sure that remove the bug from the Organization doc in DB
-                Organization.findByIdAndRemove(req.body.organizationMongoID, function (error, doc) {
-                    // Log any errors
-                    if (error) {
-                        console.log(error);
-                    }
-                    else {
-                        // Deleting doc was a success, sending back doc. 
-                        res.send(doc);
-                    }
-                });
+                //TODO
                 console.log(doc);
                 res.json(doc);
             }

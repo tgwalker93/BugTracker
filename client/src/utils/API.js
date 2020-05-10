@@ -79,6 +79,11 @@ export default {
         console.log("I'm in the attachUserToOrganizationInDB method in API file");
         console.log(userData);
         return axios.post("/api/organization/attachUserToOrganization", userData);
+    },
+    deleteOrganizationInDB: function(organizationData){
+        console.log("I'm in the delete Organization In DB method");
+        console.log(organizationData);
+        return axios.post("/api/organization/deleteOrganization", organizationData);
     }
 
 };
