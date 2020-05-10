@@ -31,6 +31,10 @@ const BugSchema = new Schema({
             type: Object,
             required: false
         },
+        isCompleted: {
+            type: Boolean,
+            required: false
+        },
         // This only saves one comment's ObjectId, ref refers to the Note model
         bugComments: [{
             type: Schema.Types.ObjectId,

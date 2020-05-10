@@ -62,8 +62,8 @@ export default {
     },
     getBugComments: function(bugData) {
         console.log("I'm in getbugcomments front end API.JS");
-        console.log(bugData.newMongoID);
-        return axios.get("/api/bug/getBugComments/" + bugData.newMongoID);
+        console.log(bugData.mongoID);
+        return axios.get("/api/bug/getBugComments/" + bugData.mongoID);
     },
 
     // ORGANiZATION CALLS

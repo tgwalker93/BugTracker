@@ -149,11 +149,6 @@ class Profile extends Component {
             organizationIDInModal: organizationClickedOn.organizationID
         });
     }
-    handleViewBugsOrganizationButtonClick(organizationClickedOn) {
-        // console.log("Delete Bug Clicked on!!! ");
-        // this.deleteBugInDB(bugClickedOn);
-        // this.renderBugComments(bugClickedOn);
-    }
 
     handleCreateOrganizationButtonClick = event => {
         this.setState({
@@ -351,8 +346,6 @@ class Profile extends Component {
                                 <h1 className="display-4 BugTrackerTitle">Welcome, {this.props.firstName}!</h1>
                             </Container>
                         </div>
-
-                        <Link to="/bug-view" className="log" ><Button>View Bugs</Button></Link>
                         <Button onClick={this.handleChangePasswordButtonClick.bind(this)}>Change Password</Button>
                         <Button onClick={this.handleCreateOrganizationButtonClick.bind(this)}>Create Organization</Button>
                         <Button onClick={this.handleJoinOrganizationButtonClick.bind(this)}>Join Organization</Button>
@@ -377,9 +370,6 @@ class Profile extends Component {
                                                 <td className="organizationTable_td">{organization.organizationID}</td>
                                                 <td className="organizationTable_td">
                                                     
-                                                    {/* <Button variant="primary" onClick={() => this.handleViewBugsOrganizationButtonClick(organization)}>
-                                                    View Bugs
-                                                    </Button> */}
                                                     
                                                     <Link to={{pathname: "/bug-view", state: {organizationMongoID: organization._id}}} className="log" ><Button>View Bugs</Button></Link>
                                                     </td>

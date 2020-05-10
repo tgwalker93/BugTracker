@@ -126,7 +126,8 @@ app.post("/updateBug", function (req, res) {
     let update = { bugTitle: req.body.bugTitle, 
         bugDescription: req.body.bugDescription,
     userAssigned: req.body.userAssigned,
-    status: req.body.status };
+    status: req.body.status,
+    isCompleted: req.body.isCompleted };
 
     console.log(req.body.mongoID);
 
@@ -142,6 +143,7 @@ app.post("/updateBug", function (req, res) {
             // Or send the doc to the browser as a json object
             else {
                 console.log("getUserData back-end was successful!");
+                console.log(doc);
                 res.json(doc);
             }
         })
@@ -163,6 +165,7 @@ app.post("/saveBug", function (req, res) {
             bugTitle: req.body.bugTitle,
             bugDescription: req.body.bugDescription,
             userAssigned: req.body.userAssigned,
+            isCompleted: false,
             status: req.body.status 
 
     };

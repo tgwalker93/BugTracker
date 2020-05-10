@@ -12,6 +12,13 @@ var BugCommentSchema = new Schema({
     // Just a string
     text: {
         type: String
+    },
+    userWhoMadeComment: {
+        type: String
+    },
+    timestamp: {
+        type: Date,
+        default: Date.now()
     }
 });
 

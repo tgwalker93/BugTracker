@@ -32,10 +32,13 @@ class BugViewPage extends Component {
             selectedBug: "",
             currentModalTitle: "Edit Bug",
             currentBugIndex: 0,
+            currentCompletedBugIndex: 0,
             showModal: false,
             showModal2: false,
             sampleBugViewTableData: [{ id: "1", bugTitle: "Title A", bugDescription: "Test A" }, { id: "2", bugTitle: "Title B", bugDescription: "Test B" }, { id: "3", bugTitle: "Title C", bugDescription: "Test C"}],
             bugData: [],
+            completedBugData: [],
+            filteredCompletedBugData: [],
             filteredBugData: [],
             bugTitleInModal: "",
             bugCommentsInModal: [],
@@ -46,7 +49,10 @@ class BugViewPage extends Component {
             bugUserAssignedInModal: "",
             userFilter: "",
             statusFilter: "",
-            organizationMongoID: ""
+            organizationMongoID: "",
+            showActiveBugs: true,
+            showCompletedBugs: false,
+            isCurrentBugCompleted: false
         };
 
     }
@@ -107,6 +113,7 @@ class BugViewPage extends Component {
                     bugObj.mongoID = response.data.bugDoc._id;
                     bugObj.newMongoID = response.data.bugDoc._id;
                     bugObj.id = this.state.currentBugIndex;
+                    bugObj.isCompleted = response.data.isCompleted;
 
                     console.log(bugObj);
 
@@ -130,36 +137,170 @@ class BugViewPage extends Component {
                     console.log(response.data);
 
                     this.setState({ showModal: false });
-                    this.state.bugData[this.state.currentBugIndex] = this.state.selectedBug;
+
+
+
+                    if (this.state.selectedBug.isCompleted){
+                        //Once updated we need to update our state's local array
+
+                        //We add to completed bug
+                        this.state.completedBugData[this.state.currentCompletedBugIndex] = this.state.selectedBug;
+
+                        //we remove from active bug list
+                        var index = this.state.bugData.indexOf(this.state.selectedBug);
+                        if (index > -1) {
+                            this.state.bugData.splice(index, 1);
+                        }
+                    } else {
+                        //Otherwise, if bug is incomplete...
+
+                        //We add to active bugs
+                        this.state.bugData[this.state.currentBugIndex] = this.state.selectedBug;
+
+                        //We remove from the completed bug list
+                        var index = this.state.completedBugData.indexOf(this.state.selectedBug);
+                        if (index > -1) {
+                            this.state.completedBugData.splice(index, 1);
+                        }                   
+
+                        
+                    }
+                    
+
+
+
                     this.forceUpdate();
                 } else {
                     this.setState({ errorResponse: response })
                 }
             })
     }
+    checkBothCompletedAndActiveBugData(bugArrayFromDB){
+        var bugs = [];
+        var completedBugs = this.state.completedBugData;
+        //Loop through bug data received from the server.
+        for (var i = 0; i < bugArrayFromDB.length; i++) {
+
+            //If bug is completed, then we add to separate array for rendering on the UI purposes
+            if (bugArrayFromDB[i].isCompleted) {
+
+                console.log("COMPLETED BUG " + this.state.currentBugIndex);
+                console.log(bugArrayFromDB[i]);
+                completedBugs.push({
+                    mongoID: bugArrayFromDB[i]._id,
+                    id: this.state.currentCompletedBugIndex,
+                    bugTitle: bugArrayFromDB[i].bugTitle,
+                    bugDescription: bugArrayFromDB[i].bugDescription,
+                    userAssigned: bugArrayFromDB[i].userAssigned,
+                    status: bugArrayFromDB[i].status,
+                    isCompleted: bugArrayFromDB[i].isCompleted
+                })
+
+
+            } else {
+                //If bug is not completed, then we add to separate array
+                console.log("bug " + this.state.currentBugIndex);
+                console.log(bugArrayFromDB[i]);
+                bugs.push({
+                    mongoID: bugArrayFromDB[i]._id,
+                    id: this.state.currentBugIndex,
+                    bugTitle: bugArrayFromDB[i].bugTitle,
+                    bugDescription: bugArrayFromDB[i].bugDescription,
+                    userAssigned: bugArrayFromDB[i].userAssigned,
+                    status: bugArrayFromDB[i].status,
+                    isCompleted: bugArrayFromDB[i].isCompleted
+                })
+
+
+
+
+            }
+
+
+
+
+            this.setState({ currentBugIndex: this.state.currentBugIndex + 1, currentCompletedBugIndex: this.state.completedBugData + 1 });
+
+
+
+
+        }
+        console.log("before I set state, here is completed bugs");
+        console.log(completedBugs);
+        this.setState({ bugData: bugs, completedBugData: completedBugs });
+        console.log("IF IM HEre THEN THE DATA JUST UPDATED!!!!");
+        this.forceUpdate();
+        console.log("Here is bug data from inside callback of API.getAllBugs in bug-view page!");
+        console.log(bugs);
+
+        //At default, we want to show all bugs in the table
+        this.putAllBugsIntoFilteredArray();
+        this.forceUpdate();
+    }
+
+
+
     getBugsFromDB() {
         API.getAllBugs(this.state.organizationMongoID)
             .then(response => {
                 if (!response.data.error) {
                     console.log("SUCCESSFULLY GOT BUGS FROM DB_____________________________________________________");
                     var bugs = [];
+                    var completedBugs = [];
                     console.log(response.data);
                     var bugArrayFromDB = response.data.organizationDoc.bugs;
+                    console.log("here are all the bugs I got back from DB **************************");
+                    console.log(bugArrayFromDB);
                     //Loop through bug data received from the server.
                     for (var i = 0; i < bugArrayFromDB.length; i++) {
-                        console.log("bug " + i);
-                        bugs.push({
-                            mongoID: bugArrayFromDB[this.state.currentBugIndex]._id,
-                            id: this.state.currentBugIndex,
-                            bugTitle: bugArrayFromDB[this.state.currentBugIndex].bugTitle,
-                            bugDescription: bugArrayFromDB[this.state.currentBugIndex].bugDescription,
-                            userAssigned: bugArrayFromDB[this.state.currentBugIndex].userAssigned,
-                            status: bugArrayFromDB[this.state.currentBugIndex].status
-                        })
-                        this.setState({ currentBugIndex: this.state.currentBugIndex + 1 });
-                        console.log(bugs);
+
+                        //If bug is completed, then we add to separate array for rendering on the UI purposes
+                        if (bugArrayFromDB[i].isCompleted){
+
+                            console.log("COMPLETED BUG " + this.state.currentBugIndex);
+                            console.log(bugArrayFromDB[i]);
+                            completedBugs.push({
+                                mongoID: bugArrayFromDB[i]._id,
+                                id: this.state.currentCompletedBugIndex,
+                                bugTitle: bugArrayFromDB[i].bugTitle,
+                                bugDescription: bugArrayFromDB[i].bugDescription,
+                                userAssigned: bugArrayFromDB[i].userAssigned,
+                                status: bugArrayFromDB[i].status,
+                                isCompleted: bugArrayFromDB[i].isCompleted
+                            })
+
+
+                        }else {                           
+                        //If bug is not completed, then we add to separate array
+                           console.log("bug " + this.state.currentBugIndex);
+                            console.log(bugArrayFromDB[i]);
+                            bugs.push({
+                                mongoID: bugArrayFromDB[i]._id,
+                                id: this.state.currentBugIndex,
+                                bugTitle: bugArrayFromDB[i].bugTitle,
+                                bugDescription: bugArrayFromDB[i].bugDescription,
+                                userAssigned: bugArrayFromDB[i].userAssigned,
+                                status: bugArrayFromDB[i].status,
+                                isCompleted: bugArrayFromDB[i].isCompleted
+                            })
+
+
+
+
+                        }
+
+
+
+
+                        this.setState({ currentBugIndex: this.state.currentBugIndex + 1, currentCompletedBugIndex: this.state.currentCompletedBugIndex + 1});
+
+
+
+
                    }
-                    this.setState({ bugData: bugs });
+                   console.log("before I set state, here is completed bugs");
+                   console.log(completedBugs);
+                    this.setState({ bugData: bugs, completedBugData: completedBugs });
                     console.log("IF IM HEre THEN THE DATA JUST UPDATED!!!!");
                     this.forceUpdate();
                     console.log("Here is bug data from inside callback of API.getAllBugs in bug-view page!");
@@ -271,13 +412,12 @@ class BugViewPage extends Component {
             this.state.bugData[this.state.currentBugIndex].userAssigned = this.state.bugUserAssignedInModal;
             this.state.bugData[this.state.currentBugIndex].status = this.state.bugStatusInModal;
 
-
             this.setState({selectedBug: this.state.bugData[this.state.currentBugIndex]});
             this.updateBugInDB();
         }
     }
     closeModal = () => {
-        this.setState({ showModal: false, bugTitleInModal:"", bugDescriptionInModal: "" });
+        this.setState({ showModal: false, bugTitleInModal: "", bugDescriptionInModal: "", currentBugCommentInModal: "" });
         console.log("I'm in closemodal!! Below is the bug object");
         console.log(this.state.bugData[this.state.currentIndex]);
         console.log(this.state.bugUserAssignedInModal);
@@ -335,7 +475,118 @@ class BugViewPage extends Component {
         for (var i = 0; i < this.state.bugData.length; i++) {
             this.state.bugData[i].id = i;
         }
+        for(var j=0; j<this.state.completedBugData.length; j++){
+            this.state.completedBugData[j].id = j;
+        }
     }
+
+    //If you click "Show Completed Bugs" or "Hide Completed Bugs", this will show or hide.
+    swapRenderCompletedBugs = () => {
+        if(this.state.showCompletedBugs){
+            this.setState({showCompletedBugs: false})
+        }else {
+            this.setState({ showCompletedBugs: true })
+        }
+        
+    }
+    //If you click "Show Active Bugs" or "Hide Active Bugs", this will show or hide.
+    swapRenderActiveBugs = () => {
+        if (this.state.showActiveBugs) {
+            this.setState({ showActiveBugs: false })
+        } else {
+            this.setState({ showActiveBugs: true })
+        }
+    }
+
+    completedCheck(bug){
+        console.log("YOU JUST CLICKED COMPLETED CHECK");
+        console.log(bug);
+
+       if(bug.isCompleted){
+           bug.isCompleted = false;
+       }else {
+           bug.isCompleted = true;
+       }
+
+        this.setState({ selectedBug: bug }, () => {
+            //this.adjustBugDataOrder();
+            this.updateBugInDB();
+            //this.checkBothCompletedAndActiveBugData(this.state.bugData)
+            this.forceUpdate();
+        });
+
+
+        // if (bug.isCompleted) {
+        //     bug.isCompleted = false;
+
+        //     //Removing the bug from the UI
+        //     var index = this.state.completedBugData.indexOf(bug);
+        //     if (index > -1) {
+        //         this.state.completedBugData.splice(index, 1);
+        //     }
+
+        //     this.state.bugData.push(bug);
+
+        //     console.log("INDEX IS: " + index);
+
+        //     console.log("IN CompeltedCheck(bug) --- HERE IS THE updated BUG DATA");
+        //     console.log(this.state.bugData);
+        //     console.log(" here is completed bug data");
+        //     console.log(this.state.completedBugData);
+        //     //this.adjustBugDataOrder();
+
+
+        //     //Now we want to save this bug in DB
+        //     this.setState({ selectedBug: bug, isCurrentBugCompleted: bug.isCompleted, currentCompletedBugIndex: index, completedBugData: this.state.completedBugData.splice(index, 1) }, () => {
+        //         console.log("Before I call updateBugInDB i'm in checkComplete and here is selected bug");
+        //         console.log(this.state.selectedBug);
+        //         //this.adjustBugDataOrder();
+        //         this.updateBugInDB();
+        //         //this.checkBothCompletedAndActiveBugData(this.state.bugData)
+        //         this.forceUpdate();
+        
+        //     });
+        
+        
+        //     } else {
+        //     //Removing the bug from the UI
+        //     var index = this.state.bugData.indexOf(bug);
+        //     if (index > -1) {
+        //         this.state.bugData.splice(index, 1);
+        //     }
+        //     //SWAP
+
+        //      bug.isCompleted = true;
+            
+
+
+
+        //     this.state.completedBugData.push(bug);
+
+        //     console.log("INDEX IS: " + index);
+
+        //     console.log("IN CompeltedCheck(bug) --- HERE IS THE updated BUG DATA");
+        //     console.log(this.state.bugData);
+        //     console.log(" here is completed bug data");
+        //     console.log(this.state.completedBugData);
+        //     //this.adjustBugDataOrder();
+
+            
+        //     //Now we want to save this bug in DB
+        //     this.setState({ selectedBug: bug, currentBugIndex: index, isCurrentBugCompleted: bug.isCompleted, bugData: this.state.bugData.splice(index, 1) }, () => {
+        //         console.log("Before I call updateBugInDB i'm in checkComplete and here is selected bug");
+        //         console.log(this.state.selectedBug);
+        //         //this.adjustBugDataOrder();
+        //         this.updateBugInDB();
+        //         //this.checkBothCompletedAndActiveBugData(this.state.bugData)
+        //         this.forceUpdate();
+        //     });
+
+        // }
+
+
+    }
+
     render() {
 
 
@@ -349,26 +600,20 @@ class BugViewPage extends Component {
             if (this.state.statusFilter === bug.status && this.state.statusFilter !== "")  {
 
                 statusFilterIsActive = true;
-            }
-            
+            }          
             if(this.state.userFilter === bug.userAssigned && this.state.userFilter !== "") {
                 assigneeFilterIsActive = true;
             }
-
-
-                if (statusFilterIsActive && assigneeFilterIsActive){
+            if (statusFilterIsActive && assigneeFilterIsActive){
+            return this.state.filteredBugData.push(bug);
+            } else if (statusFilterIsActive && this.state.userFilter === ""){
+                
                 return this.state.filteredBugData.push(bug);
-                } else if (statusFilterIsActive && this.state.userFilter === ""){
-                    
-                    return this.state.filteredBugData.push(bug);
-                }
-                else if (assigneeFilterIsActive && this.state.statusFilter === "") {
-                    return this.state.filteredBugData.push(bug);
-                }
+            }
+            else if (assigneeFilterIsActive && this.state.statusFilter === "") {
+                return this.state.filteredBugData.push(bug);
+            }
         });
-
-        console.log("Before RENDER() return, here is the filtered data!!!");
-        console.log(this.state.filteredBugData);
           } else {
             this.state.filteredBugData = [];
             this.state.bugData.map(bug => {
@@ -377,6 +622,43 @@ class BugViewPage extends Component {
             });
 
           }
+
+
+
+
+          // NOW WE WILL DO THE SAME LOGIC FOR COMPLETED BUGS
+        if (this.state.userFilter !== "" || this.state.statusFilter !== "") {
+            this.state.filteredCompletedBugData = [];
+            this.state.completedBugData.map(bug => {
+
+                var assigneeFilterIsActive = false;
+                var statusFilterIsActive = false;
+                //APPLY THE FILTERS
+                if (this.state.statusFilter === bug.status && this.state.statusFilter !== "") {
+
+                    statusFilterIsActive = true;
+                }
+                if (this.state.userFilter === bug.userAssigned && this.state.userFilter !== "") {
+                    assigneeFilterIsActive = true;
+                }
+                if (statusFilterIsActive && assigneeFilterIsActive) {
+                    return this.state.filteredCompletedBugData.push(bug);
+                } else if (statusFilterIsActive && this.state.userFilter === "") {
+
+                    return this.state.filteredCompletedBugData.push(bug);
+                }
+                else if (assigneeFilterIsActive && this.state.statusFilter === "") {
+                    return this.state.filteredCompletedBugData.push(bug);
+                }
+            });
+        } else {
+            this.state.filteredCompletedBugData = [];
+            this.state.completedBugData.map(bug => {
+                return this.state.filteredCompletedBugData.push(bug);
+
+            });
+
+        }
         return (
              <Container id="containerViewBugs" fluid="true">
                 <Row id="mainRow">
@@ -386,11 +668,10 @@ class BugViewPage extends Component {
                                 <h1 className="display-4 BugTrackerTitle">View Bugs</h1>
                             </Container>
                         </div>
-                        <Link to="/profile" className="log" ><Button>View Profile</Button></Link>
                         <br />
                         <br />
                         <Row>
-                            <Col size="sm-3">
+                            <Col size="sm-1">
                                 <p><strong>Assignee </strong> </p>
                                 <select value={this.state.userFilter} onChange={this.handleChange.bind(this)} id="userFilter" name="userFilter">
                                     <option className="dropdown-item" href="#" value=""></option>
@@ -400,7 +681,7 @@ class BugViewPage extends Component {
                                     <option className="dropdown-item" href="#" value="Arthur">Arthur</option>
                                 </select>
                             </Col>
-                            <Col size="sm-3">
+                            <Col size="sm-1">
                                 <p><strong>Status</strong></p>
                                 <select value={this.state.statusFilter} onChange={this.handleChange.bind(this)} id="statusFilter" name="statusFilter">
                                     <option className="dropdown-item" href="#" value=""></option>
@@ -409,52 +690,167 @@ class BugViewPage extends Component {
                                     <option className="dropdown-item" href="#" value="Needs Testing">Needs Testing</option>
                                 </select>
                             </Col>
+                            <Col size="sm-2">
+                                <Link to="/profile" className="log" ><Button>View Profile</Button></Link>
+                            </Col>
+                            <Col size="sm-2">
+                                <Button type="button" className="btn btn-primary" onClick={this.createNewBugButton}>Create New Bug</Button>
+                            </Col>
+                            <Col size="sm-2">
+                                {this.state.showActiveBugs ?
+                                    <Button type="button" className="btn btn-primary" onClick={this.swapRenderActiveBugs.bind(this)}>Hide Active Bugs</Button>
+                                    :
+                                    <Button type="button" className="btn btn-primary" onClick={this.swapRenderActiveBugs.bind(this)}>Show Active Bugs</Button>
+                                }
+                                
+                            </Col>
+                            <Col size="sm-2">
+                                
+                                {this.state.showCompletedBugs ?
+                                    <Button type="button" className="btn btn-primary" onClick={this.swapRenderCompletedBugs.bind(this)}>Hide Completed Bugs</Button>
+                                    :
+                                    <Button type="button" className="btn btn-primary" onClick={this.swapRenderCompletedBugs.bind(this)}>Show Completed Bugs</Button>
+                                }
+                            </Col>
+                                       
                         </Row>
                             <br />
                                 <br />
-                        {this.state.bugData.length ? (
-                        <table id="bugViewTable_Table" className="table table-hover bugViewTable_Table">
-                            <thead id="bugViewTable_head" className="thead-dark">
+
+                        {this.state.showActiveBugs ?                   
+                       <div>
+                                {this.state.bugData.length ? (
+                                    <table id="bugViewTable_Table" className="table table-hover bugViewTable_Table">
+                                        <thead id="bugViewTable_head" className="thead-dark">
                                             <tr>
-                                    <th className="bugViewTable_th" scope="col">Title</th>
-                                    <th className="bugViewTable_th" scope="col">User Assigned</th>
-                                    <th className="bugViewTable_th" scope="col">Status</th>
-                                    <th className="bugViewTable_th" scope="col"></th>
-                                    <th className="bugViewTable_th" scope="col"></th>
+                                                <th className="bugViewTable_th" scope="col">Complete</th>
+                                                <th className="bugViewTable_th" scope="col">Title</th>
+                                                <th className="bugViewTable_th" scope="col">User Assigned</th>
+                                                <th className="bugViewTable_th" scope="col">Status</th>
+                                                <th className="bugViewTable_th" scope="col"></th>
+                                                <th className="bugViewTable_th" scope="col"></th>
                                             </tr>
-                                </thead>
-                                        <tbody>                                   
-                                    {this.state.filteredBugData.map(bug => {
-                                            return(
-                                                <tr className="bugViewTable_tr" key={bug.mongoID}>
-                                                    <td className="bugViewTable_td">{bug.bugTitle}</td>
-                                                    <td className="bugViewTable_td">{bug.userAssigned}</td>
-                                                    <td className="bugViewTable_td">{bug.status}</td>
-                                                    <td id="editColumn" className="bugViewTable_td">                            
-                                                        <Button variant="primary" onClick={() => this.editBugButton(bug)}>
-                                                            Edit
+                                        </thead>
+                                        <tbody>
+                                            {this.state.filteredBugData.map(bug => {
+                                                return (
+                                                    <tr className="bugViewTable_tr" key={bug.mongoID}>
+                                                        <td id="isCompletedColumn" className="bugViewTable_td">
+
+                                                            <label className="isCompletedContainer">
+                                                                <input type="checkbox" checked={bug.isCompleted} onClick={() => this.completedCheck(bug)}
+                                                                value={bug.isCompleted} onChange={this.handleChange.bind(this)} name="bugIsCompleted"                                                                
+                                                                />
+                                                                <span className="checkmark"></span>
+                                                            </label>
+
+
+                                                        </td>
+                                                        <td className="bugViewTable_td">{bug.bugTitle}</td>
+                                                        <td id="userAssignedColumn" className="bugViewTable_td">{bug.userAssigned}</td>
+                                                        <td id="statusColumn" className="bugViewTable_td">{bug.status}</td>
+                                                        <td id="editColumn" className="bugViewTable_td">
+                                                            <Button variant="primary" onClick={() => this.editBugButton(bug)}>
+                                                                Edit
                                                     </Button>
-                                                    </td>
-                                                    <td id="deleteColumn" className="bugViewTable_td"> <Button variant="primary" onClick={() => this.deleteBugButton(bug)}>Delete</Button></td>
+                                                        </td>
+                                                        <td id="deleteColumn" className="bugViewTable_td"> <Button variant="primary" onClick={() => this.deleteBugButton(bug)}>Delete</Button></td>
                                                     </tr>
-                                            )
-                                })}
-                                    </tbody>
+                                                )
+                                            })}
+                                        </tbody>
                                     </table>
 
 
-                        ) : ( <h3> No Results to Display </h3>  )} 
+                                ) : (<h3> No Results to Display </h3>)} 
+                       </div>
+                        
+                        
+                        
+                        : 
+                        
+                        
+                        ""
+                    } 
+                       
+
+                            {this.state.showCompletedBugs ? 
+                            
+                            
+                            
+                            
+                            
+                            <div>
+                            
+                                {this.state.completedBugData.length ? (
+                                    <div>
+                                    <h1>Completed Bugs</h1>
+                                    <table id="bugViewTable_Table" className="table table-hover bugViewTable_Table">
+                                        <thead id="bugViewTable_head" className="thead-dark">
+                                            <tr>
+                                                <th className="bugViewTable_th" scope="col">Complete</th>
+                                                <th className="bugViewTable_th" scope="col">Title</th>
+                                                <th className="bugViewTable_th" scope="col">User Assigned</th>
+                                                <th className="bugViewTable_th" scope="col">Status</th>
+                                                <th className="bugViewTable_th" scope="col"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {this.state.completedBugData.map(bug => {
+                                                return (
+                                                    <tr className="bugViewTable_tr" key={bug.mongoID}>
+                                                        <td id="isCompletedColumn" className="bugViewTable_td">
+
+                                                            <label className="isCompletedContainer">
+                                                                <input type="checkbox" checked={bug.isCompleted} onClick={() => this.completedCheck(bug)}
+                                                                    value={bug.isCompleted} onChange={this.handleChange.bind(this)} name="bugIsCompleted"
+                                                                />
+                                                                <span className="checkmark"></span>
+                                                            </label>
+
+
+                                                        </td>
+                                                        <td className="bugViewTable_td">{bug.bugTitle}</td>
+                                                        <td id="userAssignedColumn" className="bugViewTable_td">{bug.userAssigned}</td>
+                                                        <td id="statusColumn" className="bugViewTable_td">{bug.status}</td>
+                                                        <td id="deleteColumn" className="bugViewTable_td"> </td>
+                                                    </tr>
+                                                )
+                                            })}
+                                        </tbody>
+                                    </table>
+                                    </div>
+
+                                ) : (<h3> No Results to Display </h3>)} 
+
+
+                            </div>
+                            
+                            
+                            
+                            
+                            
+                            
+                            :
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            ""}
+
                                 <br />
                                     <br />
-                        <Button type="button" className="btn btn-primary" onClick={this.createNewBugButton}>Create New Bug</Button>
-
-                       
+                                
                        
                        
                 
                         {/* This modal will pop up for editing bugs! */}
                         <Modal show={this.state.showModal} animation={false}>
                             <Modal.Header>
+                                <Button className='btn btn-danger note-delete xButton' id="bugModalXButton" onClick={() => this.closeModal()}>X</Button>
                                 <Modal.Title>{this.state.currentModalTitle}</Modal.Title>
                             </Modal.Header>
                             <Modal.Body>
@@ -496,7 +892,6 @@ class BugViewPage extends Component {
 
                                     "": <div>
 
-
                                         <hr />
                                         {this.state.bugCommentsInModal.length ? (
                                             <BugCommentContainer>
@@ -527,7 +922,6 @@ class BugViewPage extends Component {
                                             name="currentBugCommentInModal"
                                         />
                                         <Button className='btn btn-success save' onClick={() => this.addBugComment()}>Save Comment</Button>
-                                        <Button className='btn btn-danger note-delete noteModal' onClick={() => this.closeModal()}>X</Button>
 
                                     </div>
                                 }
