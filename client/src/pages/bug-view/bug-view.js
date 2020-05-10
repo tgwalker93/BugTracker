@@ -85,33 +85,30 @@ class BugViewPage extends Component {
 
     //************************** DB METHODS ************** THESE METHODS SAVE, EDIT, GET BUGS FROM DB *******************************************
     saveNewBugInDB = () => {
-
         console.log("Im in saveNewBugIn DB");
-    
+        console.log(bugObj);
 
-        let bugObj = {
-            id: this.state.bugData.length,
-            mongoID: this.state.bugData.length,
-            currentBugIndex: this.state.bugData.length,
+        var bugObj = {
+            organizationMongoID: this.state.organizationMongoID,
             bugTitle: this.state.bugTitleInModal,
             bugDescription: this.state.bugDescriptionInModal,
             userAssigned: this.state.bugUserAssignedInModal,
             status: this.state.bugStatusInModal
         }
-        console.log(bugObj);
+
         API.saveBug(bugObj)
             .then(response => {
 
-
-
                 if (!response.data.error) {
                     console.log("I WAS SUCCESSFUL Saving Bug FROM Bug View PAGE");
+                    console.log(response.data.bugDoc._id);
 
-                    //Grabbing new ID from DB
-                    bugObj.mongoID = response.data.doc._id;
+
+                    bugObj.mongoID = response.data.bugDoc._id;
+                    bugObj.newMongoID = response.data.bugDoc._id;
+                    bugObj.id = this.state.currentBugIndex;
 
                     console.log(bugObj);
-
 
                     this.setState({ showModal: false });
                     this.state.bugData.push(bugObj);
@@ -129,7 +126,8 @@ class BugViewPage extends Component {
             .then(response => {
 
                 if (!response.data.error) {
-                    console.log("I WAS SUCCESSFUL Saving Bug FROM Bug View PAGE");
+                    console.log("!!!!!!!!!!!!!!!I WAS SUCCESSFUL UPDATE Bug FROM Bug View PAGE!!!!!!!!!!!!!");
+                    console.log(response.data);
 
                     this.setState({ showModal: false });
                     this.state.bugData[this.state.currentBugIndex] = this.state.selectedBug;
@@ -140,25 +138,27 @@ class BugViewPage extends Component {
             })
     }
     getBugsFromDB() {
-        API.getAllBugs()
+        API.getAllBugs(this.state.organizationMongoID)
             .then(response => {
                 if (!response.data.error) {
-                    console.log("SUCCESSFULLY GOT BUGS FROM DB");
+                    console.log("SUCCESSFULLY GOT BUGS FROM DB_____________________________________________________");
                     var bugs = [];
+                    console.log(response.data);
+                    var bugArrayFromDB = response.data.organizationDoc.bugs;
                     //Loop through bug data received from the server.
-                    for (var i = 0; i < response.data.length; i++) {
+                    for (var i = 0; i < bugArrayFromDB.length; i++) {
                         console.log("bug " + i);
                         bugs.push({
-                            mongoID: response.data[this.state.currentBugIndex]._id,
+                            mongoID: bugArrayFromDB[this.state.currentBugIndex]._id,
                             id: this.state.currentBugIndex,
-                            bugTitle: response.data[this.state.currentBugIndex].bugTitle,
-                            bugDescription: response.data[this.state.currentBugIndex].bugDescription,
-                            userAssigned: response.data[this.state.currentBugIndex].userAssigned,
-                            status: response.data[this.state.currentBugIndex].status
+                            bugTitle: bugArrayFromDB[this.state.currentBugIndex].bugTitle,
+                            bugDescription: bugArrayFromDB[this.state.currentBugIndex].bugDescription,
+                            userAssigned: bugArrayFromDB[this.state.currentBugIndex].userAssigned,
+                            status: bugArrayFromDB[this.state.currentBugIndex].status
                         })
                         this.setState({ currentBugIndex: this.state.currentBugIndex + 1 });
                         console.log(bugs);
-                    }
+                   }
                     this.setState({ bugData: bugs });
                     console.log("IF IM HEre THEN THE DATA JUST UPDATED!!!!");
                     this.forceUpdate();
@@ -179,6 +179,8 @@ class BugViewPage extends Component {
     deleteBugInDB(bugClickedOn) {
         console.log("I'm in delete bug in DB method. Here is the bug that was clicked on");
         console.log(bugClickedOn);
+        bugClickedOn.bugMongoID = bugClickedOn.mongoID;
+        bugClickedOn.organizationMongoID = this.state.organizationMongoID;
         API.deleteBug(bugClickedOn)
             .then(response => {
 
@@ -186,12 +188,13 @@ class BugViewPage extends Component {
                     console.log("I WAS SUCCESSFUL DELETING THE Bug FROM Bug View PAGE. Here is the response.");
                     console.log(response);
 
-                     if(response.data.deletedCount > 0){
+                    if (response.data.deletedBugDoc.deletedCount > 0){
                          //Removing the bug from the UI
                          const index = this.state.bugData.indexOf(bugClickedOn);
                          if (index > -1) {
                              this.state.bugData.splice(index, 1);
                          }
+                         this.adjustBugDataOrder();
                      } else {
                          console.log("Deleting the bug failed for some reason!");
                      }
@@ -234,9 +237,11 @@ class BugViewPage extends Component {
                 // if(res.data.bugComment == null){
                 //     bugCommentsArr = [];
                 // }
-                this.setState({
-                    bugCommentsInModal: res.data.bugComments
-                })
+                if(res.data !== null){
+                    this.setState({
+                        bugCommentsInModal: res.data.bugComments
+                    })
+                }
             })
             .catch(err => console.log(err));
     }
@@ -257,6 +262,9 @@ class BugViewPage extends Component {
         if (this.state.isNewBug){
             this.saveNewBugInDB();
         } else {
+            console.log("I'm in the UPDATE OR CREATE BUG METHOD, below is the bug data");
+            console.log(this.state.bugData);
+            console.log("here is the currentBugIndex: " + this.state.currentBugIndex);
             //UPDATE THE BUG DATA LOCALLY BEFORE PUSHING TO DB
             this.state.bugData[this.state.currentBugIndex].bugTitle = this.state.bugTitleInModal;
             this.state.bugData[this.state.currentBugIndex].bugDescription = this.state.bugDescriptionInModal;
@@ -282,6 +290,7 @@ class BugViewPage extends Component {
     editBugButton(bugClickedOn) {
         console.log("Edit bug clicked on !!!");
         console.log(bugClickedOn);
+        this.adjustBugDataOrder()
         this.setState({ showModal: true, 
             currentModalTitle: "Edit Bug",
             currentBugIndex: bugClickedOn.id,
@@ -294,7 +303,6 @@ class BugViewPage extends Component {
     deleteBugButton(bugClickedOn){ 
         console.log("Delete Bug Clicked on!!! ");
         this.deleteBugInDB(bugClickedOn);
-        this.renderBugComments(bugClickedOn);
     }
 
     createNewBugButton = () => {
@@ -307,8 +315,12 @@ class BugViewPage extends Component {
     //CALLS THIS WHEN THE COMPONENT MOUNTS, basically "on page load"
     componentDidMount() {
         console.log("Component Did Mount has been called");
-        this.setState({organizationMongoID: this.props.location.state.organizationMongoID})
-        this.getBugsFromDB();
+        console.log("BELOW IS THE PASSED PROPS STATE");
+        console.log(this.props.location.state);
+        this.setState({ organizationMongoID: this.props.location.state.organizationMongoID }, () => {
+            this.getBugsFromDB();
+        });
+
         
     } 
 
@@ -318,17 +330,18 @@ class BugViewPage extends Component {
             return this.state.filteredBugData.push(bug);
         });
     }
-
+    adjustBugDataOrder() {
+        //Update the current page's id of the bug for UI purposes
+        for (var i = 0; i < this.state.bugData.length; i++) {
+            this.state.bugData[i].id = i;
+        }
+    }
     render() {
 
 
         if (this.state.userFilter !== "" || this.state.statusFilter !== ""){
             this.state.filteredBugData  = [];
             this.state.bugData.map(bug => {
-                console.log("status filter is " + this.state.statusFilter);
-                console.log("bug.status is " + bug.status);
-                console.log("user filter is " + this.state.userFilter);
-                console.log("bug.userFilter is " + bug.userAssigned);
                 
                var assigneeFilterIsActive = false;
                 var statusFilterIsActive = false;
@@ -342,22 +355,16 @@ class BugViewPage extends Component {
                 assigneeFilterIsActive = true;
             }
 
-            console.log("statusFilterIsActive: " + statusFilterIsActive);
-            console.log("AssigneeFilterIsActive: " + assigneeFilterIsActive);
 
                 if (statusFilterIsActive && assigneeFilterIsActive){
-                    console.log("StatusFilter and Assigneefilter active");
                 return this.state.filteredBugData.push(bug);
                 } else if (statusFilterIsActive && this.state.userFilter === ""){
                     
-                    console.log("Just statusfilter is active");
                     return this.state.filteredBugData.push(bug);
                 }
                 else if (assigneeFilterIsActive && this.state.statusFilter === "") {
-                    console.log("Just assignee filter is active");
                     return this.state.filteredBugData.push(bug);
                 }
-                console.log("_------------------");
         });
 
         console.log("Before RENDER() return, here is the filtered data!!!");
@@ -365,10 +372,6 @@ class BugViewPage extends Component {
           } else {
             this.state.filteredBugData = [];
             this.state.bugData.map(bug => {
-                console.log("status filter is " + this.state.statusFilter);
-                console.log("bug.status is " + bug.status);
-                console.log("user filter is " + this.state.userFilter);
-                console.log("bug.userAssigned is " + bug.userAssigned);
                     return this.state.filteredBugData.push(bug);
 
             });
@@ -420,14 +423,10 @@ class BugViewPage extends Component {
                                     <th className="bugViewTable_th" scope="col"></th>
                                             </tr>
                                 </thead>
-                                        <tbody>  
-                                            {console.log("here is the filtered data")}
-                                            {console.log(this.state.filteredBugData)}                                       
+                                        <tbody>                                   
                                     {this.state.filteredBugData.map(bug => {
                                             return(
-                                                <tr className="bugViewTable_tr" key={bug.id}>
-                                                    {console.log("I'm in filteredBudata MAP, below is current BUG")}
-                                                    {console.log(bug)}
+                                                <tr className="bugViewTable_tr" key={bug.mongoID}>
                                                     <td className="bugViewTable_td">{bug.bugTitle}</td>
                                                     <td className="bugViewTable_td">{bug.userAssigned}</td>
                                                     <td className="bugViewTable_td">{bug.status}</td>

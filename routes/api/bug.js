@@ -13,24 +13,12 @@ var Organization = require("../../db/models/organization.js");
 
 //Getting bugs from the Database!
 app.get("/getAllBugs/:organizationMongoID", function (req, res) {
-
-    // Bug.find()
-    // .then(function(doc, error){
-    //     // Log any errors
-    //     if (error) {
-    //         console.log("getUserData back-end failed!")
-    //         console.log(error);
-    //     }
-    //     // Or send the doc to the browser as a json object
-    //     else {
-    //         console.log("getUserData back-end was successful!");
-    //         res.json(doc);
-    //     }
-    // })
-    //Constructing the reusltObj that will be sent back to the client
-    var resultObj = {
-
+    console.log("I'm in the getALL BUGS on the backend. Below is organization MONGO ID");
+    console.log(req.params.organizationMongoID);
+    resultObj = {
+        
     }
+    //Use the org id param to find the organization and its associated bugs
     Organization.findOne({ "_id": req.params.organizationMongoID })
         // ..and populate all of the bug comments associated with it
         .populate("bugs")
@@ -61,11 +49,6 @@ app.post("/deleteBug", function (req, res) {
     console.log(req.body);
 
 
-    let filter = { _id: req.body.mongoID };
-    let options = {
-        safe: true
-    }
-
     let update = {
         bugTitle: req.body.bugTitle,
         bugDescription: req.body.bugDescription,
@@ -78,24 +61,50 @@ app.post("/deleteBug", function (req, res) {
         update: update   
     }
 
-    Bug
-        .deleteOne(filter, function (error, doc) {
+    Organization.findOneAndUpdate({ "_id": req.body.organizationMongoID },
+        { $pullAll: { bugs: [req.body.bugMongoID] } },
+        { safe: true })
+        // Execute the above query
+        .exec(function (err, orgMongoDoc) {
             // Log any errors
-            if (error) {
-                console.log("bug deleted back-end failed!")
-                console.log(error);
+            if (err) {
+                console.log(err);
+                resultObj.error = true;
+                resultObjt.errorObj = err;
                 res.json(error);
             }
-            // Or send the doc to the browser as a json object
             else {
-                console.log("bug delete back-end was successful!");
-                //Deleting the bug was a success, now we need to make sure that remove the bug from the Organization doc in DB
-                //TODO
-                console.log(doc);
-                res.json(doc);
-            }
-        })
-        .catch(err => res.status(422).json(err));
+                //Now that I updated the Organization's bug array...
+                            //now that we deleted all the bug comments, we will now delete the bug itself
+                            //Find the bug and deleted
+                            var filter = { _id: req.body.bugMongoID };                          
+                     Bug.deleteOne(filter, function (error, bugDoc) {
+                                // Log any errors
+                                if (error) {
+                                    console.log("Bug deleted back-end failed!")
+                                    console.log(error);
+                                    resultObj.error = true;
+                                    resultObj.errorObj = error;
+                                    res.json(resultObj);
+                                }
+                                // Or send the doc to the browser as a json object
+                                else {
+                                    console.log("Bug delete back-end was successful!");
+                                    //Deleting the bug was a success, now we need to make sure that remove the bug from the Organization doc in DB
+                                    //TODO
+                                    console.log(bugDoc);
+
+                                    resultObj.deletedBugDoc = bugDoc;
+                                    resultObj.message = "The Bug has been deleted.";
+                                    resultObj.error = false;
+                                    //Now that the bug has been sucessfully deleted, we want to delete all the associated bug comments! 
+
+                                    res.json(resultObj);
+
+                                }
+                            })            
+                }
+            });
 
 
 })
@@ -178,8 +187,8 @@ app.post("/saveBug", function (req, res) {
             resultObj.bugDoc = doc;
             //Now that we saved the bugs, we need to find the Organization and add to it's array the new bug.
             // Use the organization id to find and update its' bugs
-            Organization.findOneAndUpdate({ "_id": req.body.organizationMongoID }, { $push: { "organizations": doc._id } },
-                { safe: true, upsert: true })
+            Organization.findOneAndUpdate({ "_id": req.body.organizationMongoID }, { $push: { "bugs": doc._id } },
+                { safe: true, upsert: false })
                 // Execute the above query
                 .exec(function (err, doc) {
 
@@ -187,11 +196,14 @@ app.post("/saveBug", function (req, res) {
                     // Log any errors
                     if (err) {
                         console.log(err);
+                        resultObj.error = true;
+                        resultObj.errorObj = err;
+                        res.send(resultObj);
                     }
                     else {
                         // Updating Organization was success, added new Organization DOc, and send back to client
                         resultObj.organizationDoc = doc;
-                        res.send(doc);
+                         res.send(resultObj);
                     }
                 });
             //res.json(resultObj)

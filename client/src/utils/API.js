@@ -42,10 +42,12 @@ export default {
         console.log(bugData);
         return axios.post("/api/bug/deleteBug", bugData);
     },
-    getAllBugs: function() {
+    getAllBugs: function (organizationMongoID) {
+        console.log("I'm in the GETALLBUGS method on API.js, below is organizationMongoID");
+        console.log(organizationMongoID);
         //TODO - Set up organization ID query
         //Query db to get all bugs
-        return axios.get("/api/bug/getAllBugs/:organizationMongoID")
+        return axios.get("/api/bug/getAllBugs/" + organizationMongoID);
     },
     
 
@@ -60,8 +62,8 @@ export default {
     },
     getBugComments: function(bugData) {
         console.log("I'm in getbugcomments front end API.JS");
-        console.log(bugData.mongoID);
-        return axios.get("/api/bug/getBugComments/" + bugData.mongoID);
+        console.log(bugData.newMongoID);
+        return axios.get("/api/bug/getBugComments/" + bugData.newMongoID);
     },
 
     // ORGANiZATION CALLS
