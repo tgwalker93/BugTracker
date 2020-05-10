@@ -56,6 +56,10 @@ app.post('/sendForgotPasswordEmail', (req, res, next) => {
 
                 //Now that we found our user (the doc variable, we want to save a newly generated password before we send email out)
                 doc.password = newPassword;
+
+                console.log("DOC BEFORE SAVING");
+                console.log(doc);
+                console.log("Here is the password: " + doc.password);
                 
                 //Update the user object in the db, effectively updating just the password.
                 doc.save(function (error, doc) {

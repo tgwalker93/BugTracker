@@ -8,6 +8,10 @@ body {
     font-family: 'Gotham';
 
   }
+
+  .help-block {
+     color: red !important;   
+  }
   
 
 

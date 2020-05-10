@@ -14,19 +14,8 @@ class BugViewPage extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            firstName: "",
-            lastName: "",
-            emailAddress: "",
-            password: "",
-            phoneNumber: "",
-            guestCount: "",
-            formErrors: { firstName: "", lastName: "", emailAddress: "", phoneNumber: "", guestCount: "", password: "" },
-            firstNameValid: false,
-            lastNameValid: false,
-            passwordValid: false,
-            emailAddressValid: false,
-            phoneNumberValid: false,
-            guestCountValid: false,
+            formErrors: { bugTitle: "" },
+            bugTitleValid: false,
             isLogin: true,
             isNewBug: false,
             selectedBug: "",
@@ -35,7 +24,6 @@ class BugViewPage extends Component {
             currentCompletedBugIndex: 0,
             showModal: false,
             showModal2: false,
-            sampleBugViewTableData: [{ id: "1", bugTitle: "Title A", bugDescription: "Test A" }, { id: "2", bugTitle: "Title B", bugDescription: "Test B" }, { id: "3", bugTitle: "Title C", bugDescription: "Test C"}],
             bugData: [],
             completedBugData: [],
             filteredCompletedBugData: [],
@@ -67,6 +55,23 @@ class BugViewPage extends Component {
     }
 
     validateFields() {
+
+        
+            let fieldValidationErrors = this.state.formErrors;
+            let bugTitleValid = this.state.bugTitleValid;
+
+
+            bugTitleValid = this.state.bugTitleInModal.length > 0;
+            fieldValidationErrors.bugTitle = bugTitleValid ? "" : "Please add Bug Title.";
+
+
+            this.setState({
+                formErrors: fieldValidationErrors,
+                bugTitleValid: bugTitleValid
+            }, () => {
+                    this.updateOrCreateBug();
+            });
+        
 
     }
 
@@ -400,6 +405,9 @@ class BugViewPage extends Component {
 
     //************************THESE METHODS ARE CALLED FROM BUTTONS WITHIN THE MODAL*********************
     updateOrCreateBug = () => {
+        if(!this.state.bugTitleValid){
+            return;
+        }
         if (this.state.isNewBug){
             this.saveNewBugInDB();
         } else {
@@ -711,10 +719,9 @@ class BugViewPage extends Component {
                             
                             
                             <div>
-                            
+                                <h1>Completed Bugs</h1>
                                 {this.state.completedBugData.length ? (
                                     <div>
-                                    <h1>Completed Bugs</h1>
                                     <table id="bugViewTable_Table" className="table table-hover bugViewTable_Table">
                                         <thead id="bugViewTable_head" className="thead-dark">
                                             <tr>
@@ -762,12 +769,7 @@ class BugViewPage extends Component {
                             
                             
                             :
-                            
-                            
-                            
-                            
-                            
-                            
+                                                      
                             
                             ""}
 
@@ -786,36 +788,33 @@ class BugViewPage extends Component {
                             <Modal.Body>
 
 
-                                <Input label="Bug Title" onBlur={this.formatInput.bind(this)} value={this.state.bugTitleInModal} id="bugTitleInModal" onChange={this.handleChange.bind(this)} name="bugTitleInModal" />
-
-
-                                <TextArea label="Bug Description" onBlur={this.formatInput.bind(this)} value={this.state.bugDescriptionInModal} id="bugDescriptionInModal" onChange={this.handleChange.bind(this)} name="bugDescriptionInModal" />
+                                <Input label="Title" onBlur={this.formatInput.bind(this)} isvalid={this.state.bugTitleValid.toString()} 
+                                fielderror={this.state.formErrors.bugTitle} value={this.state.bugTitleInModal} id="bugTitleInModal" onChange={this.handleChange.bind(this)} name="bugTitleInModal" />
                                 <br />
-                                <br />
-                                <label><strong>Assignee</strong></label>
-                                <select value={this.state.bugUserAssignedInModal} onChange={this.handleChange.bind(this)} id="bugUserAssignedInModal" name="bugUserAssignedInModal">
+                                <label htmlFor="bugUserAssignedInModal"><strong>Assignee</strong></label> <br />
+                                <select label="Assignee" value={this.state.bugUserAssignedInModal} onChange={this.handleChange.bind(this)} id="bugUserAssignedInModal" name="bugUserAssignedInModal">
                                     <option className="dropdown-item" href="#" value=""></option>
                                     <option className="dropdown-item" href="#" value="Tawny">Tawny</option>
                                     <option className="dropdown-item" href="#" value="Anthony">Anthony</option>
                                     <option className="dropdown-item" href="#" value="Tyler">Tyler</option>
                                     <option className="dropdown-item" href="#" value="Arthur">Arthur</option>
                                 </select>
-
                                 <br />
-
                                 <br />
-                                <label><strong>Status</strong></label>
-                                <select value={this.state.bugStatusInModal} onChange={this.handleChange.bind(this)} id="bugStatusInModal" name="bugStatusInModal">
+                                <label htmlFor="bugStatusInModal"><strong>Status</strong></label>  <br />
+                                <select label="Status" value={this.state.bugStatusInModal} onChange={this.handleChange.bind(this)} id="bugStatusInModal" name="bugStatusInModal">
                                     <option className="dropdown-item" href="#" value=""></option>
                                     <option className="dropdown-item" href="#" value="Open">Open</option>
                                     <option className="dropdown-item" href="#" value="In Development">In Development</option>
                                     <option className="dropdown-item" href="#" value="Needs Testing">Needs Testing</option>
-                                    <option className="dropdown-item" href="#" value="Completed">Completed</option>
                                 </select>
 
+                                <br />
 
                                 <br />
-                                <br />
+
+                                <TextArea label="Description" onBlur={this.formatInput.bind(this)} value={this.state.bugDescriptionInModal} id="bugDescriptionInModal" onChange={this.handleChange.bind(this)} name="bugDescriptionInModal" />
+
                                 {/* BUG COMMENT SECTION */}
 
                                 {this.state.isNewBug ? 
@@ -865,9 +864,12 @@ class BugViewPage extends Component {
                                 <Button variant="secondary" onClick={this.closeModal}>
                                     Close
                                   </Button>
-                                <Button variant="primary" onClick={this.updateOrCreateBug}>
+                                {/* <Button variant="primary" onClick={this.updateOrCreateBug}>
                                     Save Changes
-                              </Button>
+                              </Button> */}
+                                <Button variant="primary" onClick={this.handleFormSubmit}>
+                                    Save Changes
+                              </Button> 
                             </Modal.Footer>
                         </Modal>
 
