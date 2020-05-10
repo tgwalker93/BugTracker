@@ -45,7 +45,7 @@ export default {
     getAllBugs: function() {
         //TODO - Set up organization ID query
         //Query db to get all bugs
-        return axios.get("/api/bug/getAllBugs")
+        return axios.get("/api/bug/getAllBugs/:organizationMongoID")
     },
     
 
@@ -76,7 +76,7 @@ export default {
         return axios.get("/api/organization/getAllOrganizationsOfUser/" + userData.mongoID);
     },
     attachUserToOrganizationInDB: function (userData) {
-        console.log("I'm in the getOrganizationsOfUserInDB method in API file");
+        console.log("I'm in the attachUserToOrganizationInDB method in API file");
         console.log(userData);
         return axios.post("/api/organization/attachUserToOrganization", userData);
     }

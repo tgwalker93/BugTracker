@@ -6,26 +6,50 @@ var app = express.Router();
 //Database Models 
 var Bug = require("../../db/models/bug.js");
 var BugComment = require("../../db/models/bugComment.js");
+var Organization = require("../../db/models/organization.js");
 
 
 //TODO MOVE THE DATA ACCESS METHODS TO A CONTROLLER!!!
 
 //Getting bugs from the Database!
-app.get("/getAllBugs", function (req, res) {
+app.get("/getAllBugs/:organizationMongoID", function (req, res) {
 
-    Bug.find()
-    .then(function(doc, error){
-        // Log any errors
-        if (error) {
-            console.log("getUserData back-end failed!")
-            console.log(error);
-        }
-        // Or send the doc to the browser as a json object
-        else {
-            console.log("getUserData back-end was successful!");
-            res.json(doc);
-        }
-    })
+    // Bug.find()
+    // .then(function(doc, error){
+    //     // Log any errors
+    //     if (error) {
+    //         console.log("getUserData back-end failed!")
+    //         console.log(error);
+    //     }
+    //     // Or send the doc to the browser as a json object
+    //     else {
+    //         console.log("getUserData back-end was successful!");
+    //         res.json(doc);
+    //     }
+    // })
+    //Constructing the reusltObj that will be sent back to the client
+    var resultObj = {
+
+    }
+    Organization.findOne({ "_id": req.params.organizationMongoID })
+        // ..and populate all of the bug comments associated with it
+        .populate("bugs")
+        // now, execute our query
+        .exec(function (error, doc) {
+            // Log any errors
+            if (error) {
+                //Error with gettings bugs from Organization, sending back error
+                console.log(error);
+                resultObj.error = true;
+                resultObj.errorObj = error;
+                res.json(resultObj);
+            }
+            // Otherwise, send the doc to the browser as a json object
+            else {
+                resultObj.organizationDoc = doc;
+                res.json(resultObj);
+            }
+        });
 
 })
 
@@ -49,7 +73,10 @@ app.post("/deleteBug", function (req, res) {
         status: req.body.status
     };
 
-    console.log(req.body.mongoID);
+    console.log("Constructing the Result obj to return to the client");
+    var resultObj = {
+        update: update   
+    }
 
     Bug
         .deleteOne(filter, function (error, doc) {
@@ -62,6 +89,17 @@ app.post("/deleteBug", function (req, res) {
             // Or send the doc to the browser as a json object
             else {
                 console.log("bug delete back-end was successful!");
+                //Deleting the bug was a success, now we need to make sure that remove the bug from the Organization doc in DB
+                Organization.findByIdAndRemove(req.body.organizationMongoID, function (error, doc) {
+                    // Log any errors
+                    if (error) {
+                        console.log(error);
+                    }
+                    else {
+                        // Deleting doc was a success, sending back doc. 
+                        res.send(doc);
+                    }
+                });
                 console.log(doc);
                 res.json(doc);
             }
@@ -120,6 +158,7 @@ app.post("/saveBug", function (req, res) {
     console.log("I'm in save bug post")
     console.log(req.body);
 
+
     var resultObj = {
             bugTitle: req.body.bugTitle,
             bugDescription: req.body.bugDescription,
@@ -145,8 +184,26 @@ app.post("/saveBug", function (req, res) {
         else {
             console.log("SAVING NEW BUG SUCCESS FROM BACKEND");
             console.log(doc);
-            resultObj.doc = doc;
-            res.json(resultObj)
+            resultObj.bugDoc = doc;
+            //Now that we saved the bugs, we need to find the Organization and add to it's array the new bug.
+            // Use the organization id to find and update its' bugs
+            Organization.findOneAndUpdate({ "_id": req.body.organizationMongoID }, { $push: { "organizations": doc._id } },
+                { safe: true, upsert: true })
+                // Execute the above query
+                .exec(function (err, doc) {
+
+
+                    // Log any errors
+                    if (err) {
+                        console.log(err);
+                    }
+                    else {
+                        // Updating Organization was success, added new Organization DOc, and send back to client
+                        resultObj.organizationDoc = doc;
+                        res.send(doc);
+                    }
+                });
+            //res.json(resultObj)
             // res.json(doc);
         }
     });

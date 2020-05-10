@@ -38,7 +38,7 @@ app.post("/saveOrganization", function (req, res) {
                 }
                 res.json(responseObj);
             }
-            // IF USER IS NOT FOUND, then we an save the new organization, since organizationID MUST BE UNIQUE! 
+            // IF Organization IS NOT FOUND, then we an save the new organization, since organizationID MUST BE UNIQUE! 
             else if (doc === null) {
                 // And save the new organization in the db
                 newOrganization.save(function (error, doc) {
@@ -106,8 +106,65 @@ app.get("/getAllOrganizationsOfUser/:mongoID", function(req, res) {
 
 //attach user to organization
 app.post("/attachUserToOrganization", function (req, res) {
-    console.log("i'm in the attachedUserToOrganization BACK END");
-    
+    console.log("i'm in the attachUserToOrganization BACK END");
+    console.log(req.body);
+    // Create a new Organization and pass the req.body to the entry
+    let result = {
+        organizationID: req.body.organizationID,
+        userMongoID: req.body.mongoID
+    }
+
+    console.log(result);
+
+    let filter = { organizationID: req.body.organizationID };
+
+    console.log("Here is the filter");
+    console.log(filter);
+
+    Organization
+        .findOne(filter, function (error, doc) {
+            // Log any errors -- 
+            if (error) {
+                console.log("ERROR FOUND WHEN TRYING TO SEARCH ORGANIZATION!")
+                console.log(error);
+                let responseObj = {
+                    error: true,
+                    errorReason: "Server error."
+                }
+                res.json(responseObj);
+            }
+            // IF Organization IS NOT FOUND, then we send error back to client, unable to join organizaiton
+            //organizationID MUST BE UNIQUE! 
+            else if (doc === null) {
+                console.log(error);
+                let responseObj = {
+                    error: true,
+                    errorReason: "Cannot find Organization with that Organization ID"
+                }
+                res.json(responseObj);
+            }
+            else {
+                //If the ORGANIZATION ID is found, then we will update that Organization.
+                //We will update the Organization mongoID in the User Model's "organizations" array
+               // Use the User id to find and update its' organization
+                User.findOneAndUpdate({ "_id": req.body.mongoID }, { $push: { "organizations": doc._id } },
+                    { safe: true, upsert: true })
+                    // Execute the above query
+                    .exec(function (err, doc) {
+
+                        console.log("Found organization and updated?");
+                        console.log(doc);
+                        // Log any errors
+                        if (err) {
+                            console.log(err);
+                        }
+                        else {
+                            // Or send the document to the browser
+                            res.send(doc);
+                        }
+                    });
+            }
+        });
 
 });
 

@@ -193,11 +193,13 @@ class Profile extends Component {
                 if (!response.data.error) {
                     console.log("SAVE ORGANIZATION successful in Profile Page, below is response.data");
                     console.log(response.data);
+                    this.setState({ showModal: false });
+                    this.getOrganizationsOfUserInDB();
+                    this.forceUpdate();
 
                 } else {
                     console.log("SAVE ORGANIZATION WAS A FAIL!!!! Below is the response.data");
                     console.log(response.data);
-                    this.setState({ showModal: false });
                 }
             })
             .catch(err => console.log(err));
@@ -234,12 +236,13 @@ class Profile extends Component {
             .catch(err => console.log(err));
     }
 
-    attachUserToOrganizationInDB() {
+    attachUserToOrganizationInDB = () => {
         let userObj = {
             password: this.state.oldPassword,
             newPassword: this.state.newPassword1,
             username: this.props.username,
-            mongoID: this.props.mongoID
+            mongoID: this.props.mongoID,
+            organizationID: this.state.organizationIDInModal
         }
         API.attachUserToOrganizationInDB(userObj)
             .then(response => {
@@ -250,14 +253,15 @@ class Profile extends Component {
                     console.log(response.data);
 
                     this.setState({
-                        organizations: response.data.organizations
+                        organizations: response.data.organizations,
+                        showModal: false
                     })
+                    this.getOrganizationsOfUserInDB();
+                    this.forceUpdate();
 
                 } else {
                     console.log("attachUserToOrganizationInDB WAS A FAIL!!!! Below is the response.data");
                     console.log(response.data);
-                    this.setState({ showModal: false });
-                    this.forceUpdate();
                 }
             })
             .catch(err => console.log(err));
@@ -296,12 +300,17 @@ class Profile extends Component {
                                 <tbody>
                                     {this.state.organizations.map(organization => {
                                         return (
-                                            <tr className="organizationTable_tr" key={organization.id}>
+                                            <tr className="organizationTable_tr" key={organization._id}>
                                                 <td className="organizationTable_td">{organization.name}</td>
                                                 <td className="organizationTable_td">{organization.organizationID}</td>
-                                                <td className="organizationTable_td"><Button variant="primary" onClick={() => this.handleViewBugsOrganizationButtonClick(organization)}>
+                                                <td className="organizationTable_td">
+                                                    
+                                                    {/* <Button variant="primary" onClick={() => this.handleViewBugsOrganizationButtonClick(organization)}>
                                                     View Bugs
-                                                    </Button></td>
+                                                    </Button> */}
+                                                    
+                                                    <Link to={{pathname: "/bug-view", state: {organizationMongoID: organization._id}}} className="log" ><Button>View Bugs</Button></Link>
+                                                    </td>
                                                 <td id="editColumn" className="organizationTable_td">
                                                     <Button variant="primary" onClick={() => this.handleEditOrganizationButtonClick(organization)}>
                                                         Edit
@@ -359,7 +368,7 @@ class Profile extends Component {
                                     </div>
                                     :
                                     <div>
-                                        {this.state.setPasswordFieldsActiveInModal ?
+                                        {this.state.setJoinOrganizationFieldsActiveInModal ?
                                         <div>
                                             <p>Please enter the Organization ID of the organization you wish to join:</p>
                                             <Input onBlur={this.formatInput.bind(this)}
@@ -411,17 +420,15 @@ class Profile extends Component {
                                     Close
                                   </Button>
                                 {this.state.setPasswordFieldsActiveInModal ?
-                                        <Button variant="primary" onClick={this.handleUpdatePassword}>
+                                      <Button variant="primary" onClick={this.handleUpdatePassword}>
                                         Save Changes
                                         </Button>
                                     :
-
-
                                     <div>
                                         {this.state.setJoinOrganizationFieldsActiveInModal ?
-                                            <Button variant="primary" onClick={this.attachUserToOrganizationInDB}>
+                                            <Button variant="primary" onClick={this.attachUserToOrganizationInDB.bind(this)}>
                                                 Submit</Button> : 
-                                            <Button variant="primary" onClick={this.saveOrganizationInDB}>
+                                            <Button variant="primary" onClick={this.saveOrganizationInDB.bind(this)}>
                                                 Submit</Button>}
                                     </div>
                                     }

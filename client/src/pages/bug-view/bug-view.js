@@ -45,7 +45,8 @@ class BugViewPage extends Component {
             bugStatusInModal: "",
             bugUserAssignedInModal: "",
             userFilter: "",
-            statusFilter: ""
+            statusFilter: "",
+            organizationMongoID: ""
         };
 
     }
@@ -306,6 +307,7 @@ class BugViewPage extends Component {
     //CALLS THIS WHEN THE COMPONENT MOUNTS, basically "on page load"
     componentDidMount() {
         console.log("Component Did Mount has been called");
+        this.setState({organizationMongoID: this.props.location.state.organizationMongoID})
         this.getBugsFromDB();
         
     } 

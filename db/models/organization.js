@@ -10,7 +10,12 @@ const OrganizationSchema = new Schema({
     organizationID: {
         type: String,
         required: false
-    }
+    },
+    // This only saves one comment's ObjectId, ref refers to the Note model
+    bugs: [{
+        type: Schema.Types.ObjectId,
+        ref: "Bug"
+    }]
 });
 
 
