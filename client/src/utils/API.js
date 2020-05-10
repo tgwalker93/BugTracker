@@ -84,6 +84,11 @@ export default {
         console.log("I'm in the delete Organization In DB method");
         console.log(organizationData);
         return axios.post("/api/organization/deleteOrganization", organizationData);
+    },
+    updateOrganizationInDB: function(userData){
+        console.log("I'm in the update Organization in DB method");
+        console.log(userData);
+        return axios.post("/api/organization/updateOrganization", userData)
     }
 
 };

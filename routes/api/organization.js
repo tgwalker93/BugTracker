@@ -55,7 +55,7 @@ app.post("/saveOrganization", function (req, res) {
                             // Execute the above query
                             .exec(function (err, doc) {
 
-                                console.log("Found organization and updated?");
+                                console.log("Found USER AND UPDATED");
                                 console.log(doc);
                                 // Log any errors
                                 if (err) {
@@ -71,7 +71,7 @@ app.post("/saveOrganization", function (req, res) {
             } 
             else {
                 //IF USER IS FOUND, WE SEND ERROR BACK SAYING ORGANIZATION ID IS TAKEN
-                console.log(error);
+                console.log("Organization is taken already");
                 let responseObj = {
                     error: true,
                     errorReason: "OrganizationID already exists."
@@ -82,6 +82,42 @@ app.post("/saveOrganization", function (req, res) {
 
 });
 
+app.post("/updateOrganization", function(req, res) {
+    console.log("i'm in the updateOrganization BACKEND");
+    console.log(req.body);
+
+
+    let filter = { _id: req.body.organizationMongoID };
+    let options = {
+        safe: true,
+        upsert: false
+    }
+
+    let update = {
+        name: req.body.organizationName,
+        organizationID: req.body.organizationID
+    };
+
+    console.log(req.body.mongoID);
+
+    Organization
+        .findOneAndUpdate(filter, update, options)
+        .then(function (doc, error) {
+            // Log any errors
+            if (error) {
+                console.log("updateOrganization back-end failed!")
+                console.log(error);
+                res.json(error);
+            }
+            // Or send the doc to the browser as a json object
+            else {
+                console.log("updateOrganization back-end was successful!");
+                console.log(doc);
+                res.json(doc);
+            }
+        })
+        .catch(err => res.status(422).json(err));
+});
 
 //Get all organizations of a user object
 app.get("/getAllOrganizationsOfUser/:mongoID", function(req, res) { 
@@ -186,25 +222,12 @@ app.post("/deleteOrganization", function (req, res) {
     console.log(resultObj);
 
 
-    //before I handle this i'm just going to handle deleting first!!!
-    resultObj.isUserOrganizationOwner = true;
-    if (resultObj.isUserOrganizationOwner){
-        //If user is owner of organization, then we will DELETE the organization entirely from DB.
-        // Organization.findByIdAndRemove(resultObj.organizationMongoID, function (error, doc) {
-        //     // Log any errors
-        //     if (error) {
-        //         console.log(error);
-        //     }
-        //     else {
-        //         // Or send the document to the browser
-        //         res.send(doc);
-        //     }
-        // });
+
+
         var filter = { _id: resultObj.userMongoID}
 
-        //User.updateone(filter, { $pullAll: { uid: [req.params.deleteUid] } })
         User.findOne({ "_id": resultObj.userMongoID })
-            // ..and populate all of the bug comments associated with it
+            // ..and populate all of the organizations associated with it
             .populate("organizations")
             // now, execute our query
             .exec(function (error, userDoc) {
@@ -218,8 +241,6 @@ app.post("/deleteOrganization", function (req, res) {
                     console.log("FOUND USER");
                     console.log(userDoc);
 
-                   
-                    //userDoc.organizations.pull({_id: resultObj.organizationMongoID});
 
                     // User.updateOne({ _id: resultObj.userMongoID }, { $pullAll: { _id: [resultObj.organizationMongoID] } })
                     User.findOneAndUpdate({ "_id": resultObj.userMongoID }, 
@@ -234,33 +255,40 @@ app.post("/deleteOrganization", function (req, res) {
                                 console.log(err);
                             }
                             else {
-                                // Removing the organization from User Array was a success! Below is userDoc
-                                console.log(userDoc)
+                                //Now that I updated the user...
+                            //If user is organization owner, then we will remove the organization!!!
+                                if (resultObj.isUserOrganizationOwner) {
+                                    var filter = { _id: resultObj.organizationMongoID };
+                                    Organization
+                                        .deleteOne(filter, function (error, doc) {
+                                            // Log any errors
+                                            if (error) {
+                                                console.log("organization deleted back-end failed!")
+                                                console.log(error);
+                                                resultObj.error = true;
+                                                resultObj.errorObj = error;
+                                                res.json(error);
+                                            }
+                                            // Or send the doc to the browser as a json object
+                                            else {
+                                                console.log("Organization delete back-end was successful!");
+                                                //Deleting the bug was a success, now we need to make sure that remove the bug from the Organization doc in DB
+                                                //TODO
+                                                console.log(doc);
 
-                                //Now that I updated the user, I need to delete the ORGANIZATION
-                                var filter = { _id: resultObj.organizationMongoID };
-                                Organization
-                                    .deleteOne(filter, function (error, doc) {
-                                        // Log any errors
-                                        if (error) {
-                                            console.log("organization deleted back-end failed!")
-                                            console.log(error);
-                                            resultObj.error = true;
-                                            resultObj.errorObj = error;
-                                            res.json(error);
-                                        }
-                                        // Or send the doc to the browser as a json object
-                                        else {
-                                            console.log("Organization delete back-end was successful!");
-                                            //Deleting the bug was a success, now we need to make sure that remove the bug from the Organization doc in DB
-                                            //TODO
-                                            console.log(doc);
+                                                resultObj.deletedOrganizationDoc = doc;
+                                                resultObj.message = "The organization has been deleted.";
+                                                res.json(resultObj);
 
-                                            resultObj.deletedOrganizationDoc = doc;
-                                            res.json(resultObj);
+                                            }
+                                        })
+                            }else {
+                                //IF user is NOT owner of organization, then user will only LEAVE that organization
+                                //At this point, we updated the user obj, so that is all that we need, we can send response back to client.
+                                resultObj.message = "User has left the organization.";
+                                res.json(resultObj);
 
-                                        }
-                                    })
+                            }
 
                             }
                         });
@@ -274,62 +302,6 @@ app.post("/deleteOrganization", function (req, res) {
                 }
             });
 
-
-    }else {
-        //IF user is NOT owner of organization, then we will remove organization from User Doc in DB
-    }
-
-
-
-    // let filter = { organizationID: req.body.organizationID };
-
-    // console.log("Here is the filter");
-    // console.log(filter);
-
-    // Organization
-    //     .findOne(filter, function (error, doc) {
-    //         // Log any errors -- 
-    //         if (error) {
-    //             console.log("ERROR FOUND WHEN TRYING TO SEARCH ORGANIZATION!")
-    //             console.log(error);
-    //             let responseObj = {
-    //                 error: true,
-    //                 errorReason: "Server error."
-    //             }
-    //             res.json(responseObj);
-    //         }
-    //         // IF Organization IS NOT FOUND, then we send error back to client, unable to join organizaiton
-    //         //organizationID MUST BE UNIQUE! 
-    //         else if (doc === null) {
-    //             console.log(error);
-    //             let responseObj = {
-    //                 error: true,
-    //                 errorReason: "Cannot find Organization with that Organization ID"
-    //             }
-    //             res.json(responseObj);
-    //         }
-    //         else {
-    //             //If the ORGANIZATION ID is found, then we will update that Organization.
-    //             //We will update the Organization mongoID in the User Model's "organizations" array
-    //             // Use the User id to find and update its' organization
-    //             User.findOneAndUpdate({ "_id": req.body.mongoID }, { $push: { "organizations": doc._id } },
-    //                 { safe: true, upsert: true })
-    //                 // Execute the above query
-    //                 .exec(function (err, doc) {
-
-    //                     console.log("Found organization and updated?");
-    //                     console.log(doc);
-    //                     // Log any errors
-    //                     if (err) {
-    //                         console.log(err);
-    //                     }
-    //                     else {
-    //                         // Or send the document to the browser
-    //                         res.send(doc);
-    //                     }
-    //                 });
-    //         }
-    //     });
 
 });
 

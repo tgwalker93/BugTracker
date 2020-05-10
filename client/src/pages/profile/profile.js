@@ -21,12 +21,14 @@ class Profile extends Component {
             setPasswordFieldsActiveInModal: false,
             setCreateOrganizationFieldsActiveInModal: false,
             setJoinOrganizationFieldsActiveInModal: false,
+            setEditOrganizationFieldsActiveInModal: false,
             formErrors: { oldPassword: "", newPassword1and2:"", organizationName:"", organizationID:"" },
             oldPassword: "",
             newPassword1: "",
             newPassword2: "",
             organizationNameInModal: "",
             organizationIDInModal: "",
+            organizationMongoIDInModal: "",
             oldPasswordValid: false,
             newPassword1and2Valid: false,
             organizationNameValid: false,
@@ -104,7 +106,7 @@ class Profile extends Component {
 
 
     //************************THESE METHODS ARE CALLED FROM BUTTONS WITHIN THE MODAL*********************
-    handleUpdatePassword = () => {
+    updatePasswordInDB = () => {
 
         let userObj = {
             password: this.state.oldPassword,
@@ -139,8 +141,12 @@ class Profile extends Component {
         this.setState({
             showModal: true,
             currentModalTitle: "Edit Organization",
-            setCreateOrganizationFieldsActiveInModal: true,
-            setPasswordFieldsActiveInModal: false
+            setCreateOrganizationFieldsActiveInModal: false,
+            setEditOrganizationFieldsActiveInModal: true,
+            setPasswordFieldsActiveInModal: false,
+            organizationMongoIDInModal: organizationClickedOn._id,
+            organizationNameInModal: organizationClickedOn.name,
+            organizationIDInModal: organizationClickedOn.organizationID
         });
     }
     handleViewBugsOrganizationButtonClick(organizationClickedOn) {
@@ -155,7 +161,9 @@ class Profile extends Component {
             currentModalTitle: "Create Organization",
             setPasswordFieldsActiveInModal: false,
             setCreateOrganizationFieldsActiveInModal: true,
-            setJoinOrganizationFieldsActiveInmodal: false
+            setJoinOrganizationFieldsActiveInmodal: false,
+            organizationIDInModal: "",
+            organizationNameInModal: ""
         });
 
     }
@@ -172,7 +180,7 @@ class Profile extends Component {
     }
 
     //*** METHODS BELOW RELATED TO DB WITH ORGANIZATIONS */ */
-    saveOrganizationInDB = () => {
+    saveOrganizationInDB() {
         let userObj = {
             password: this.state.oldPassword,
             newPassword: this.state.newPassword1,
@@ -231,7 +239,7 @@ class Profile extends Component {
             .catch(err => console.log(err));
     }
 
-    attachUserToOrganizationInDB = () => {
+    attachUserToOrganizationInDB() {
         let userObj = {
             password: this.state.oldPassword,
             newPassword: this.state.newPassword1,
@@ -263,9 +271,6 @@ class Profile extends Component {
     }
 
     handleDeleteOrganizationInDB(organizationClickedOn) {
-        // console.log("Delete Bug Clicked on!!! ");
-        // this.deleteBugInDB(bugClickedOn);
-        // this.renderBugComments(bugClickedOn);
         var isUserOrganizationOwner = false;
         if (this.props.mongoID === organizationClickedOn.userWhoCreatedOrgMongoID){
             isUserOrganizationOwner = true;
@@ -284,6 +289,54 @@ class Profile extends Component {
                 this.forceUpdate();
             })
             .catch(err => console.log(err));
+    }
+
+    updateOrganizationInDB() {
+        let userObj = {
+            password: this.state.oldPassword,
+            newPassword: this.state.newPassword1,
+            username: this.props.username,
+            mongoID: this.props.mongoID,
+            organizationMongoID: this.state.organizationMongoIDInModal,
+            organizationName: this.state.organizationNameInModal,
+            organizationID: this.state.organizationIDInModal
+        }
+
+        API.updateOrganizationInDB(userObj)
+            .then(response => {
+
+                if (!response.data.error) {
+                    console.log("SAVE ORGANIZATION successful in Profile Page, below is response.data");
+                    console.log(response.data);
+                    this.setState({ showModal: false });
+                    this.getOrganizationsOfUserInDB();
+                    this.forceUpdate();
+
+                } else {
+                    console.log("SAVE ORGANIZATION WAS A FAIL!!!! Below is the response.data");
+                    console.log(response.data);
+                }
+            })
+            .catch(err => console.log(err));
+    }
+
+    handleSubmitButtonInModalClick = () => {
+        if(this.state.setJoinOrganizationFieldsActiveInModal)
+        {
+            //for JOIN organization
+            this.attachUserToOrganizationInDB();
+        }else if(this.state.setCreateOrganizationFieldsActiveInModal)
+        {
+            //For CREATE organization
+            this.saveOrganizationInDB();
+        }else if (this.state.setEditOrganizationFieldsActiveInModal) {
+            //For UPDATE Organization
+            this.updateOrganizationInDB();
+        }else if(this.state.setPasswordFieldsActiveInModal)
+        {
+            //For UPDATE password
+            this.updatePasswordInDB();
+        }
     }
     
     
@@ -341,7 +394,8 @@ class Profile extends Component {
                                                 <td id="deleteColumn" className="organizationTable_td">
                                                     {this.props.mongoID === organization.userWhoCreatedOrgMongoID ?
                                                         <Button variant="primary" onClick={() => this.handleDeleteOrganizationInDB(organization)}>Delete</Button> 
-                                                        : ""
+                                                        : 
+                                                        <Button variant="primary" onClick={() => this.handleDeleteOrganizationInDB(organization)}>Leave</Button> 
                                                     }
                                                      </td>
                                             </tr>
@@ -446,19 +500,10 @@ class Profile extends Component {
                                 <Button variant="secondary" onClick={this.closeModal}>
                                     Close
                                   </Button>
-                                {this.state.setPasswordFieldsActiveInModal ?
-                                      <Button variant="primary" onClick={this.handleUpdatePassword}>
-                                        Save Changes
-                                        </Button>
-                                    :
-                                    <div>
-                                        {this.state.setJoinOrganizationFieldsActiveInModal ?
-                                            <Button variant="primary" onClick={this.attachUserToOrganizationInDB.bind(this)}>
-                                                Submit</Button> : 
-                                            <Button variant="primary" onClick={this.saveOrganizationInDB.bind(this)}>
-                                                Submit</Button>}
-                                    </div>
-                                    }
+                                <Button variant="primary" onClick={this.handleSubmitButtonInModalClick.bind(this)}>
+                                Save Changes
+                                </Button>
+
                             </Modal.Footer>
                         </Modal>
 
