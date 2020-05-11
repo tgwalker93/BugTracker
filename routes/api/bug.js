@@ -208,9 +208,13 @@ app.post("/deleteBugComment/:id", function (req, res) {
 app.post("/saveBugComment", function (req, res) {
 
     //Formatting current time to mm/dd/yyyy at hh:mm:ss PM
-     var now = new Date();
+    var now = new Date();
+    now = now.toUTCString();
     var parsedNow = new Date(Date.parse(now));
     var finalDateFormat = parsedNow.toLocaleDateString() + " at " + parsedNow.toLocaleTimeString();
+
+
+
     // Create a new bug comment and pass the req.body to the entry
     let result = {
         title: req.body.text,
