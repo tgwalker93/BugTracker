@@ -1,14 +1,11 @@
 import React, { Component } from "react";
 import { Col, Row, Container } from "../../components/Grid";
-import { BugListTableRow } from "../../components/BugListTableRow";
 import { Input, Button, TextArea } from "../../components/Form";
 import {BugCommentContainer, BugCommentPanel } from "../../components/BugCommentContainer";
-import Cookies from 'universal-cookie';
 import API from "../../utils/API";
 import "./bug-view.css";
 import { Link } from "react-router-dom";
 import Modal from "react-bootstrap/Modal";
-// import "bootstrap/dist/css/bootstrap.min.css";
 
 class BugViewPage extends Component {
     constructor(props) {
@@ -57,10 +54,8 @@ class BugViewPage extends Component {
     handleChange(e) {
         this.setState({ [e.target.id]: e.target.value });
     }
-
-    validateFields() {
-
-        
+    //This method will handle all the form validation
+    validateFields() {   
             let fieldValidationErrors = this.state.formErrors;
             let bugTitleValid = this.state.bugTitleValid;
 
@@ -100,9 +95,6 @@ class BugViewPage extends Component {
 
     //************************** DB METHODS ************** THESE METHODS SAVE, EDIT, GET BUGS FROM DB *******************************************
     saveNewBugInDB = () => {
-        console.log("Im in saveNewBugIn DB");
-        console.log(bugObj);
-
         var bugObj = {
             organizationMongoID: this.state.organizationMongoID,
             bugTitle: this.state.bugTitleInModal,
@@ -115,16 +107,11 @@ class BugViewPage extends Component {
             .then(response => {
 
                 if (!response.data.error) {
-                    console.log("I WAS SUCCESSFUL Saving Bug FROM Bug View PAGE");
-                    console.log(response.data.bugDoc._id);
-
 
                     bugObj.mongoID = response.data.bugDoc._id;
                     bugObj.newMongoID = response.data.bugDoc._id;
                     bugObj.id = this.state.currentBugIndex;
                     bugObj.isCompleted = response.data.isCompleted;
-
-                    console.log(bugObj);
 
                     this.setState({ showModal: false });
                     this.state.bugData.push(bugObj);
@@ -136,14 +123,10 @@ class BugViewPage extends Component {
     }
 
     updateBugInDB = () => {
-        console.log("I'm in the update bug in DB");
-        console.log(this.state.selectedBug);
         API.updateBug(this.state.selectedBug)
             .then(response => {
 
                 if (!response.data.error) {
-                    console.log("!!!!!!!!!!!!!!!I WAS SUCCESSFUL UPDATE Bug FROM Bug View PAGE!!!!!!!!!!!!!");
-                    console.log(response.data);
 
                     this.setState({ showModal: false });
 
@@ -159,19 +142,10 @@ class BugViewPage extends Component {
         API.getAllBugs(this.state.organizationMongoID)
             .then(response => {
                 if (!response.data.error) {
-                    console.log("SUCCESSFULLY GOT BUGS FROM DB_____________________________________________________");
                     var bugs = [];
-                    var completedBugs = [];
-                    console.log(response.data);
                     var bugArrayFromDB = response.data.organizationDoc.bugs;
-                    console.log("here are all the bugs I got back from DB **************************");
-                    console.log(bugArrayFromDB);
                     //Loop through bug data received from the server.
                     for (var i = 0; i < bugArrayFromDB.length; i++) {
-
-
-                           console.log("bug " + this.state.currentBugIndex);
-                            console.log(bugArrayFromDB[i]);
                             bugs.push({
                                 mongoID: bugArrayFromDB[i]._id,
                                 id: this.state.currentBugIndex,
@@ -182,20 +156,12 @@ class BugViewPage extends Component {
                                 isCompleted: bugArrayFromDB[i].isCompleted
                             })
 
-
-
                         this.setState({ currentBugIndex: this.state.currentBugIndex + 1});
-
-
-
 
                    }
 
                     this.setState({ bugData: bugs});
-                    console.log("IF IM HEre THEN THE DATA JUST UPDATED!!!!");
                     this.forceUpdate();
-                    console.log("Here is bug data from inside callback of API.getAllBugs in bug-view page!");
-                    console.log(bugs);
 
                     //At default, we want to show all bugs in the table
                     this.putAllBugsIntoFilteredArray();
@@ -205,20 +171,15 @@ class BugViewPage extends Component {
                 }
             }).catch(err => console.log(err));
 
-            console.log("I am here");
     }
 
     deleteBugInDB(bugClickedOn) {
-        console.log("I'm in delete bug in DB method. Here is the bug that was clicked on");
-        console.log(bugClickedOn);
         bugClickedOn.bugMongoID = bugClickedOn.mongoID;
         bugClickedOn.organizationMongoID = this.state.organizationMongoID;
         API.deleteBug(bugClickedOn)
             .then(response => {
 
                 if (!response.data.error) {
-                    console.log("I WAS SUCCESSFUL DELETING THE Bug FROM Bug View PAGE. Here is the response.");
-                    console.log(response);
 
                     if (response.data.deletedBugDoc.deletedCount > 0){
                          //Removing the bug from the UI
@@ -227,8 +188,6 @@ class BugViewPage extends Component {
                              this.state.bugData.splice(index, 1);
                          }
                          this.adjustBugDataOrder();
-                     } else {
-                         console.log("Deleting the bug failed for some reason!");
                      }
 
                      this.forceUpdate();
@@ -255,13 +214,8 @@ class BugViewPage extends Component {
 
     };
     renderBugComments(bugData) {
-
-        console.log("im in the render bug data on the front end");
-        console.log(bugData);
         API.getBugComments(bugData)
             .then(res => {
-                console.log("I got my res from render bug comments");
-                console.log(res);
                 if(res.data !== null){
                     this.setState({
                         bugCommentsInModal: res.data.bugComments,
@@ -291,31 +245,26 @@ class BugViewPage extends Component {
         if (this.state.isNewBug){
             this.saveNewBugInDB();
         } else {
-            console.log("I'm in the UPDATE OR CREATE BUG METHOD, below is the bug data");
-            console.log(this.state.bugData);
-            console.log("here is the currentBugIndex: " + this.state.currentBugIndex);
+            var newBugData = this.state.bugData;
             //UPDATE THE BUG DATA LOCALLY BEFORE PUSHING TO DB
-            this.state.bugData[this.state.currentBugIndex].bugTitle = this.state.bugTitleInModal;
-            this.state.bugData[this.state.currentBugIndex].bugDescription = this.state.bugDescriptionInModal;
-            this.state.bugData[this.state.currentBugIndex].userAssigned = this.state.bugUserAssignedInModal;
-            this.state.bugData[this.state.currentBugIndex].status = this.state.bugStatusInModal;
+             newBugData[this.state.currentBugIndex].bugTitle = this.state.bugTitleInModal;
+             newBugData[this.state.currentBugIndex].bugDescription = this.state.bugDescriptionInModal;
+             newBugData[this.state.currentBugIndex].userAssigned = this.state.bugUserAssignedInModal;
+             newBugData[this.state.currentBugIndex].status = this.state.bugStatusInModal;
 
-            this.setState({selectedBug: this.state.bugData[this.state.currentBugIndex]});
+            this.setState({selectedBug: this.state.bugData[this.state.currentBugIndex], bugData: newBugData});
             this.updateBugInDB();
         }
     }
     closeModal = () => {
         this.setState({ showModal: false, bugTitleInModal: "", bugDescriptionInModal: "", currentBugCommentInModal: "", 
-        bugStatusInModal: "", bugUserAssignedInModal:"", formErrors: {bugTitle: ""},
-    currentBugCommentInModal: "" });
+        bugStatusInModal: "", bugUserAssignedInModal:"", formErrors: {bugTitle: ""} });
     }
     //*********************** END OF MODAL BUTTON CLICK METHODS ****************************
 
 
     // ******************** THESE METHODS ARE CALLED WHEN CREATE/EDIT BUTTONS ARE FIRST CLICKED ******************
     editBugButton(bugClickedOn) {
-        console.log("Edit bug clicked on !!!");
-        console.log(bugClickedOn);
         this.adjustBugDataOrder()
         this.setState({ showModal: true, 
             currentModalTitle: "Edit Bug",
@@ -329,12 +278,11 @@ class BugViewPage extends Component {
         this.renderBugComments(bugClickedOn);
     }
     deleteBugButton(bugClickedOn){ 
-        console.log("Delete Bug Clicked on!!! ");
         this.deleteBugInDB(bugClickedOn);
     }
 
     createNewBugButton = () => {
-        this.setState({ showModal: true, currentModalTitle: "Create Bug", isNewBug: true, bugTitleInModal: "", bugDescriptionInModal: "" });
+        this.setState({ showModal: true, currentModalTitle: "Create Bug", isNewBug: true, bugTitleInModal: "", bugDescriptionInModal: "", bugUserAssignedInModal:"", bugStatusInModal:"" });
     }
     // ******************** END OF INITIAL BUTTON CLICK METHODS ******************
 
@@ -342,10 +290,6 @@ class BugViewPage extends Component {
 
     //CALLS THIS WHEN THE COMPONENT MOUNTS, basically "on page load"
     componentDidMount() {
-        console.log("Component Did Mount has been called in Bug View Page!!");
-        console.log("BELOW IS THE PASSED users");
-        console.log(this.props);
-
         var organizationUsersArray = [];
         for(var i =0; i<this.props.location.state.organizationUsers.length; i++){
             organizationUsersArray.push(
@@ -355,6 +299,7 @@ class BugViewPage extends Component {
                 }
             )
         }
+        //Grab props that were set from profile page and set them to state for easier access.
         this.setState({ organizationMongoID: this.props.location.state.organizationMongoID, organizationNameInTitle: this.props.location.state.organizationName,
             organizationUsers: organizationUsersArray,
         userFirstName: this.props.location.state.userFirstName, userLastName: this.props.location.state.userLastName }, () => {
@@ -395,10 +340,8 @@ class BugViewPage extends Component {
         }
     }
 
+    //Flip the value of "isCompleted" for the bug
     completedCheck(bug){
-        console.log("YOU JUST CLICKED COMPLETED CHECK");
-        console.log(bug);
-
        if(bug.isCompleted){
            bug.isCompleted = false;
        }else {

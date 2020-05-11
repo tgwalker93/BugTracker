@@ -42,28 +42,6 @@ const BugSchema = new Schema({
         }]
 });
 
-// Define schema methods
-// BugSchema.methods = {
-//     checkPassword: function (inputPassword) {
-//         return bcrypt.compareSync(inputPassword, this.properties.password)
-//     },
-//     hashPassword: plainTextPassword => {
-//         return bcrypt.hashSync(plainTextPassword, 10)
-//     }
-// }
-
-// Define hooks for pre-saving
-// BugSchema.pre('save', function (next) {
-//     if (!this.properties.password) {
-//         console.log('=======NO PASSWORD PROVIDED=======')
-//         next()
-//     } else {
-//         this.properties.password = this.hashPassword(this.properties.password)
-//         next()
-//     }
-
-// })
-
 
 BugSchema.index({ '$**': 'text' });
 

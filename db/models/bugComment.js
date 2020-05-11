@@ -5,17 +5,16 @@ var Schema = mongoose.Schema;
 
 // Create the Note schema
 var BugCommentSchema = new Schema({
-    // Just a string
     title: {
         type: String
     },
-    // Just a string
     text: {
         type: String
     },
     userWhoMadeComment: {
         type: String
     },
+    //date that user made the comment
     timestamp: {
         type: String,
         default: Date.now().toString()

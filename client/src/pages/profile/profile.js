@@ -1,9 +1,6 @@
 import React, { Component } from "react";
 import { Col, Row, Container } from "../../components/Grid";
-import { BugListTableRow } from "../../components/BugListTableRow";
-import { Redirect } from 'react-router-dom'
-import { Input, Button, TextArea } from "../../components/Form";
-import Cookies from 'universal-cookie';
+import { Input, Button } from "../../components/Form";
 import API from "../../utils/API";
 import "./profile.css";
 import Modal from "react-bootstrap/Modal";
@@ -47,11 +44,6 @@ class Profile extends Component {
     }
 
     componentDidMount() {
-      
-        console.log("Component mounted in Profile, below is user data");
-        console.log(this.props.mongoID);
-        console.log(this.props.firstName);
-        console.log(this.props.lastName);
         this.setState({ userFirstName: this.props.firstName, userLastName: this.props.lastName});
         this.getOrganizationsOfUserInDB();
         
@@ -78,11 +70,6 @@ class Profile extends Component {
         let organizationNameValid =  this.state.organizationNameValid;
         let organizationIDValid = this.state.organizationIDValid;
 
-
-
-        console.log("newpassword1 is: " + this.state.newPassword1);
-        console.log("newPassword2 is: " + this.state.newPassword2);
-
         //Validating between the new password field and "confirm password" field that they match and are greather than or equal to 6 characters
         newPassword1And2Valid = (this.state.newPassword1 === this.state.newPassword2) && this.state.newPassword1.length >= 6;
         fieldValidationErrors.newPassword1and2 = "New password doesn't match or your password is less than 8 characters long.";
@@ -94,13 +81,6 @@ class Profile extends Component {
         //Validating that organization ID is greater than 6 characters
         organizationIDValid = this.state.organizationIDInModal.length >= 6;
         fieldValidationErrors.organizationID = "Organization ID must have atleast six characters.";
-
-
-
-        console.log("organizationIDValid is: " + organizationIDValid);
-        console.log("organizationNameValid: " + organizationNameValid);
-        console.log("password1And2Valid: " + newPassword1And2Valid);
-        //TODO --- HANDLE FORM VALIDATION
 
         this.setState({
             formErrors: fieldValidationErrors,
@@ -158,14 +138,10 @@ class Profile extends Component {
             .then(response => {
 
                 if (!response.data.error) {
-                    console.log("UpdatePassword successful in Profile Page, below is response.data");
-                    console.log(response.data);
                     this.setState({ successMessage: "Successfully updated password."})
                     this.closeModal();
 
                 } else {
-                    console.log("Updating USER PASSWORD WAS A FAIL!!!! Below is the response.data");
-                    console.log(response.data);
                     this.setState({ serverErrorMessage: response.data.error, formErrors: { oldPassword: "", newPassword1and2: "", organizationName: "", organizationID: "", serverErrorMessage: "" }})
                 }
             })
@@ -256,15 +232,11 @@ class Profile extends Component {
             .then(response => {
 
                 if (!response.data.error) {
-                    console.log("SAVE ORGANIZATION successful in Profile Page, below is response.data");
-                    console.log(response.data);
                     this.closeModal();
                     this.getOrganizationsOfUserInDB();
                     this.forceUpdate();
 
                 } else {
-                    console.log("SAVE ORGANIZATION WAS A FAIL!!!! Below is the response.data");
-                    console.log(response.data);
                     //Now we set the error message in the modal.
                     this.setState({serverErrorMessage: response.data.error})
                 }
@@ -274,7 +246,6 @@ class Profile extends Component {
     }
 
     getOrganizationsOfUserInDB() {
-
         let userObj = {
             password: this.state.oldPassword,
             newPassword: this.state.newPassword1,
@@ -287,16 +258,11 @@ class Profile extends Component {
 
                 if (!response.data.error) {
                     //If we find no error, then we successful got the user's list of organizations. Update state with organizations.
-                    console.log("getOrganizationsOfUserInDB successful in Profile Page, below is response.data");
-                    console.log(response.data);
 
                     this.setState({
                         organizations: response.data.organizations,
                     })
 
-                } else {
-                    console.log("getOrganizationsOfUserInDB WAS A FAIL!!!! Below is the response.data");
-                    console.log(response.data);
                 }
             })
             .catch(err => console.log(err));
@@ -317,9 +283,6 @@ class Profile extends Component {
 
                 if (!response.data.error) {
                     //If we find no error, then we successful got the user's list of organizations. Update state with organizations.
-                    console.log("attachUserToOrganizationInDB successful in Profile Page, below is response.data");
-                    console.log(response.data);
-
                     this.setState({
                         organizations: response.data.organizations,
                         successMessage: "You successfully joined the organization!"
@@ -329,8 +292,6 @@ class Profile extends Component {
                     this.forceUpdate();
 
                 } else {
-                    console.log("attachUserToOrganizationInDB WAS A FAIL!!!! Below is the response.data");
-                    console.log(response.data);
                     //Now we set the error message in the modal.
                     this.setState({ serverErrorMessage: response.data.error });
                 }
@@ -339,12 +300,10 @@ class Profile extends Component {
     }
 
     handleDeleteOrganizationInDB(organizationClickedOn) {
-        console.log("IN DELETE ORGANIZATION ON PROFILE PAGE -----------------------------------------------------------------------------")
         var isUserOrganizationOwner = false;
         if (this.props.mongoID === organizationClickedOn.userWhoCreatedOrgMongoID){
             isUserOrganizationOwner = true;
         }
-        console.log("here is first name: " + this.state.userFirstName + " this is last name : " + this.state.userLastName)
         var organizationObj = {
             organizationMongoID: organizationClickedOn._id,
             userMongoID: this.props.mongoID,
@@ -377,17 +336,12 @@ class Profile extends Component {
 
         API.updateOrganizationInDB(userObj)
             .then(response => {
-
+                //If not error from server
                 if (!response.data.error) {
-                    console.log("SAVE ORGANIZATION successful in Profile Page, below is response.data");
-                    console.log(response.data);
                     this.closeModal();
                     this.getOrganizationsOfUserInDB();
                     this.forceUpdate();
 
-                } else {
-                    console.log("SAVE ORGANIZATION WAS A FAIL!!!! Below is the response.data");
-                    console.log(response.data);
                 }
             })
             .catch(err => console.log(err));
@@ -445,7 +399,7 @@ class Profile extends Component {
                                             <tr className="organizationTable_tr" key={organization._id}>
                                                 <td id="organizationNameColumn" className="organizationTable_td">{organization.name}</td>
                                                 <td id="organizationIDColumn" className="organizationTable_td">{organization.organizationID}</td>
-                                                <td className="organizationTable_td">
+                                                <td id="viewBugColumn" className="organizationTable_td">
                                                     
                                                     <Link to={{pathname: "/bug-view", state: {organizationMongoID: organization._id, organizationName: organization.name, organizationUsers: organization.users, userFirstName: this.state.userFirstName, userLastName: this.state.userLastName}}} className="log" ><Button>View Bugs</Button></Link>
                                                     </td>
@@ -539,7 +493,7 @@ class Profile extends Component {
                                                             onChange={this.handleChange.bind(this)}
                                                             name="organizationNameInModal"></Input>
 
-                                                        <Input label="Organization ID (Use this number to invite people)" onBlur={this.formatInput.bind(this)}
+                                                        <Input label="Organization ID (Use this ID to invite people)" onBlur={this.formatInput.bind(this)}
                                                             isvalid={this.state.organizationIDValid.toString()}
                                                             fielderror={this.state.formErrors.organizationID}
                                                             formgroupclass={`form-group ${this.errorClass(this.state.formErrors.organizationID)}`}

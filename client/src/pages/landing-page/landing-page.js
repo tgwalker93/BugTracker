@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import { Col, Row, Container } from "../../components/Grid";
 import { Input, Button } from "../../components/Form";
-import Cookies from 'universal-cookie';
 import API from "../../utils/API";
 import { Redirect } from 'react-router-dom'
 import { withRouter } from 'react-router';
@@ -37,6 +36,10 @@ class LandingPage extends Component {
     componentWillReceiveProps(nextProps) {
         this.setState({ serverErrorMessage: this.props.serverErrorMessage });
     }
+    componentWillMount() {
+        console.log("IM IN THE LANDING PAGE??");
+    }
+    //We use this method for validating all the fields.
     validateFields() {
         let fieldValidationErrors = this.state.formErrors;
         let emailAddressValid = this.state.emailAddressValid;
@@ -74,9 +77,6 @@ class LandingPage extends Component {
             lastNameValid: lastNameValid,
             passwordValid: passwordValid
         }, () => {
-            console.log("validate fields");
-            console.log(this.state.emailAddress);
-            console.log(this.state.emailAddressValid);
             if(this.state.loginButtonClicked && emailAddressValid){
                 //If the login button is clicked then we want submit LOGIN request, which is different than Create Account request
                 this.props._login(this.state.emailAddress, this.state.password);
@@ -106,7 +106,6 @@ class LandingPage extends Component {
     //Below are all the button click methods - Just to set it up so before I actually submit data to DB ----------------------------------
     handleFormSubmit = event => {
         event.preventDefault();
-        console.log("i'm in login submit form");
         this.setState({
             emailAddressValid: true, firstNameValid: true, lastNameValid: true, passwordValid: true,
             formErrors: { firstName: "", lastName: "", emailAddress: "", password: "" }
@@ -141,36 +140,24 @@ class LandingPage extends Component {
     }
     // END of BUTTON CLICK METHODS
 
+    //Handle the call to the DB for forgot password
     sendForgotPasswordEmail() {
         let userObj = {
             email: this.state.emailAddress
         }
 
-        console.log("I'm in SEND FORGOT PASSWROD EMAIL METHOD ON landing-page js");
-
         API.sendForgotPasswordEmail(userObj)
             .then(response => {
-
-
-
                 if (!response.data.error) {
-                    console.log("send forgot password was successful, i'm back at landing-page.js, in API.sendForgotPasswordEmail");
-                    console.log(response);
                     this.setState({ serverErrorMessage: "An email has been sent."});
                 } else {
-                    console.log("error found!!!");
-                    console.log(response);
                     this.setState({ serverErrorMessage: response.data.error })
                 }
             })
     }
 
+    //Method when user wants to create account
     saveUser() {
-        console.log(this.state.passwordValid + " passwordvalid?");
-        // if (this.state.passwordValid && this.state.firstNameValid && this.state.lastNameValid) {
-
-            console.log("Called saveUser() from LandingPage  .... BELOW IS THE STATE");
-            console.log(this.state);
             let userObj = {
                 userId: null,
                 username: this.state.emailAddress,
@@ -186,10 +173,6 @@ class LandingPage extends Component {
 
 
                     if (!response.data.error) {
-                        //userObj.userId = response.data.doc._id;
-                        console.log("here's userObj");
-                        console.log(userObj);
-
                         //Now that the user account is created, let's automatically login the user in
                          this.props._login(this.state.emailAddress, this.state.password, userObj);
 
@@ -201,19 +184,9 @@ class LandingPage extends Component {
                 })
 
     }
-
-    componentDidMount() {
-        console.log("component has mounted");
-        console.log(this);
-    }
-    componentDidUpdate() {
-
-    }
     render() {
 
         if (this.props.redirectTo) {
-            console.log("THIS . PROPS. REDIRECT EXISTS IN LANDING PAGE!!!");
-            console.log(this.props.redirectTo);
             return <Redirect to={{ pathname: this.props.redirectTo }} />
         } else {
         return (
@@ -268,8 +241,8 @@ class LandingPage extends Component {
                                         </div>
                                         :
                                         <div>
-                                        <h3 id="formFooterLink" onClick={this.handleLoginButtonClick.bind(this)}>Login instead?</h3>
-                                        <h3 id="formFooterLink" onClick={this.handleForgotPasswordButtonClick.bind(this)}>Forgot Password?</h3>
+                                        <h3 id="formFooterLink" className="formFooterLink" onClick={this.handleLoginButtonClick.bind(this)}>Login instead?</h3>
+                                        <h3 id="formFooterLink" className="formFooterLink" onClick={this.handleForgotPasswordButtonClick.bind(this)}>Forgot Password?</h3>
                                         </div>
 
                                     }

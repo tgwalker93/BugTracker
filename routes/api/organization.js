@@ -9,9 +9,6 @@ var User = require("../../db/models/user.js");
 
 //SAVE A Organization
 app.post("/saveOrganization", function (req, res) {
-
-    console.log("I'm in the save organization backend");
-    console.log(req.body);
     // Create a new Organization and pass the req.body to the entry
     let result = {
         name: req.body.organizationName,
@@ -20,20 +17,14 @@ app.post("/saveOrganization", function (req, res) {
         users: [req.body.userFirstName + " " + req.body.userLastName]
     }
 
-    console.log(result);
     var newOrganization = new Organization(result);
 
     let filter = { organizationID: req.body.organizationID };
-
-    console.log("Here is the filter");
-    console.log(filter);
 
     Organization
         .findOne(filter, function (error, doc) {
             // Log any errors -- 
             if (error) {
-                console.log("ERROR FOUND WHEN TRYING TO SEARCH ORGANIZATION!")
-                console.log(error);
                 let responseObj = {
                     error: "Server error."
                 }
@@ -46,6 +37,7 @@ app.post("/saveOrganization", function (req, res) {
                     // Log any errors
                     if (error) {
                         console.log(error);
+                        res.json(error);
                     }
                     // Otherwise
                     else {
@@ -54,12 +46,10 @@ app.post("/saveOrganization", function (req, res) {
                             { safe: true, upsert: true })
                             // Execute the above query
                             .exec(function (err, doc) {
-
-                                console.log("Found USER AND UPDATED");
-                                console.log(doc);
                                 // Log any errors
                                 if (err) {
                                     console.log(err);
+                                    res.json(err);
                                 }
                                 else {
                                     // Or send the document to the browser
@@ -71,7 +61,6 @@ app.post("/saveOrganization", function (req, res) {
             } 
             else {
                 //IF USER IS FOUND, WE SEND ERROR BACK SAYING ORGANIZATION ID IS TAKEN
-                console.log("Organization is taken already");
                 let responseObj = {
                     error: "Organization ID is taken already."
                 }
@@ -83,9 +72,6 @@ app.post("/saveOrganization", function (req, res) {
 
 //UPDATING AN ORGANIZATION
 app.post("/updateOrganization", function(req, res) {
-    console.log("i'm in the updateOrganization BACKEND");
-    console.log(req.body);
-
 
     let filter = { _id: req.body.organizationMongoID };
     let options = {
@@ -98,21 +84,16 @@ app.post("/updateOrganization", function(req, res) {
         organizationID: req.body.organizationID
     };
 
-    console.log(req.body.mongoID);
-
     Organization
         .findOneAndUpdate(filter, update, options)
         .then(function (doc, error) {
             // Log any errors
             if (error) {
-                console.log("updateOrganization back-end failed!")
                 console.log(error);
                 res.json(error);
             }
             // Or send the doc to the browser as a json object
             else {
-                console.log("updateOrganization back-end was successful!");
-                console.log(doc);
                 res.json(doc);
             }
         })
@@ -121,9 +102,7 @@ app.post("/updateOrganization", function(req, res) {
 
 //Get all organizations of a user object
 app.get("/getAllOrganizationsOfUser/:mongoID", function(req, res) { 
-    console.log("i'm in the GET organizations BACK END");
     // Using the id passed in the id parameter, prepare a query that finds the matching one in our db...
-    console.log(req.params.mongoID);
     User.findOne({ "_id": req.params.mongoID })
         // ..and populate all of the bug comments associated with it
         .populate("organizations")
@@ -132,6 +111,7 @@ app.get("/getAllOrganizationsOfUser/:mongoID", function(req, res) {
             // Log any errors
             if (error) {
                 console.log(error);
+                res.json(error);
             }
             // Otherwise, send the doc to the browser as a json object
             else {
@@ -143,26 +123,18 @@ app.get("/getAllOrganizationsOfUser/:mongoID", function(req, res) {
 
 //attach user to organization
 app.post("/attachUserToOrganization", function (req, res) {
-    console.log("i'm in the attachUserToOrganization BACK END");
-    console.log(req.body);
     // Create a new Organization and pass the req.body to the entry
     let resultObj = {
         organizationID: req.body.organizationID,
         userMongoID: req.body.mongoID
     }
 
-    console.log(resultObj);
-
     let filter = { organizationID: req.body.organizationID };
-
-    console.log("Here is the filter");
-    console.log(filter);
 
     Organization
         .findOne(filter, function (error, organizationDoc) {
             // Log any errors -- 
             if (error) {
-                console.log("ERROR FOUND WHEN TRYING TO SEARCH ORGANIZATION!")
                 console.log(error);
                 let responseObj = {
                     error: true,
@@ -173,7 +145,6 @@ app.post("/attachUserToOrganization", function (req, res) {
             // IF Organization IS NOT FOUND, then we send error back to client, unable to join organizaiton
             //organizationID MUST BE UNIQUE! 
             else if (organizationDoc === null) {
-                console.log(error);
                 let responseObj = {
                     error: "Cannot find Organization with that Organization ID"
                 }
@@ -200,31 +171,23 @@ app.post("/attachUserToOrganization", function (req, res) {
                     resultObj.error = "You have already joined that organization.";
                     res.json(resultObj);
                 } else {
-                    console.log("right beofore I UPDATE USER");
-                    console.log(userIsAlreadyInOrganization);
-
-
+                    console.log("BEFORE USER UPDATE!!");
                     // Use the User id to find and update its' organization
                     User.findOneAndUpdate({ "_id": req.body.mongoID }, { $push: { "organizations": organizationDoc._id } },
                         { safe: true, upsert: true })
                         // Execute the above query
                         .exec(function (err, userDoc) {
-
-                            console.log("Found USER AND UPDATED");
-                            console.log(userDoc);
                             // Log any errors
                             if (err) {
                                 console.log(err);
+                                res.json(err);
                             }
                             else {
                                 // Or send the document to the browser
-                                console.log("RIGHT BEOFRE I TRY TO UPDATE USER");
 
                                 //Now that we saved the user, we need to push his name to the Organization user list
                                 // Use the User id to find and update its' organization
                                 resultObj.successMessage = "You've successfully joined an organization.";
-                                console.log("successfully safed user to org");
-                                console.log(userDoc);
                                 resultObj.newUserObj = userDoc;
                                 resultObj.organizations = userDoc.organizations;
                                 organizationDoc.users.push(userDoc.firstName + " " + userDoc.lastName);
@@ -232,7 +195,6 @@ app.post("/attachUserToOrganization", function (req, res) {
                                 organizationDoc.save(function (err, afterOrganizationIsSaved) {
                                     // Log any errors
                                     if (err) {
-                                        console.log("OHH NO I HAVE AN ERORR");
                                         console.log(err);
                                         resultObj.error = "Something went wrong when trying to save the user";
                                         res.json(resultObj);
@@ -240,7 +202,6 @@ app.post("/attachUserToOrganization", function (req, res) {
 
                                     else {
                                         resultObj.successMessage = "You've successfully joined an organization.";
-                                        console.log("successfully saved user to org");
                                         res.json(resultObj);
 
                                     }
@@ -259,8 +220,6 @@ app.post("/attachUserToOrganization", function (req, res) {
 
 //Delete an Organization
 app.post("/deleteOrganization", function (req, res) {
-    console.log("i'm in the deleteOrganization BACK END");
-    console.log(req.body);
     // Create a new Organization and pass the req.body to the entry
     let resultObj = {
         organizationMongoID: req.body.organizationMongoID,
@@ -269,11 +228,6 @@ app.post("/deleteOrganization", function (req, res) {
         organizationAdminMongoID: req.body.organizationAdminMongoID,
         isUserOrganizationOwner: req.body.isUserOrganizationOwner
     }
-
-    console.log(resultObj);
-
-
-
 
         var filter = { _id: resultObj.userMongoID}
 
@@ -285,15 +239,11 @@ app.post("/deleteOrganization", function (req, res) {
                 // Log any errors
                 if (error) {
                     console.log(error);
+                    res.json(error);
                 }
-                // Otherwise, send the doc to the browser as a json object
+                // Otherwise, we found the user!
                 else {
-                    //res.json(doc);
-                    console.log("FOUND USER");
-                    console.log(userDoc);
 
-
-                    // User.updateOne({ _id: resultObj.userMongoID }, { $pullAll: { _id: [resultObj.organizationMongoID] } })
                     User.findOneAndUpdate({ "_id": resultObj.userMongoID }, 
                     { $pullAll: { organizations: [resultObj.organizationMongoID] }},
                             { safe: true})
@@ -314,7 +264,6 @@ app.post("/deleteOrganization", function (req, res) {
                                         .deleteOne(filter, function (error, doc) {
                                             // Log any errors
                                             if (error) {
-                                                console.log("organization deleted back-end failed!")
                                                 console.log(error);
                                                 resultObj.error = true;
                                                 resultObj.errorObj = error;
@@ -322,11 +271,8 @@ app.post("/deleteOrganization", function (req, res) {
                                             }
                                             // Or send the doc to the browser as a json object
                                             else {
-                                                console.log("Organization delete back-end was successful!");
                                                 //Deleting the bug was a success, now we need to make sure that remove the bug from the Organization doc in DB
                                                 //TODO
-                                                console.log(doc);
-
                                                 resultObj.deletedOrganizationDoc = doc;
                                                 resultObj.message = "The organization has been deleted.";
                                                 res.json(resultObj);
@@ -337,14 +283,11 @@ app.post("/deleteOrganization", function (req, res) {
                                 //IF user is NOT owner of organization, then user will only LEAVE that organization
                                 //At this point, we need to update the organization users list
                                 resultObj.message = "User has left the organization.";
-                                console.log("about to update organization");
-                                    console.log("first name is " + req.body.userFirstName + " and lastname is " + req.body.userLastName);
                                     var filter = { _id: resultObj.organizationMongoID };
                                     Organization
                                         .findOneAndUpdate(filter, { $pullAll: { users: [req.body.userFirstName + " " + req.body.userLastName] } }, function (error, doc) {
                                             // Log any errors
                                             if (error) {
-                                                console.log("organization leave back-end failed!")
                                                 console.log(error);
                                                 resultObj.error = true;
                                                 resultObj.errorObj = error;
@@ -352,9 +295,7 @@ app.post("/deleteOrganization", function (req, res) {
                                             }
                                             // Or send the doc to the browser as a json object
                                             else {
-                                                console.log("Organization UPDATED back-end was successful!");
                                                 //Updating the organization was a success,
-                                                console.log(doc);
                                                 resultObj.deletedOrganizationDoc = doc;
                                                 resultObj.message = "You have successfully left the organization.";
                                                 res.json(resultObj);

@@ -4,17 +4,10 @@ import App from "./App";
 import { BrowserRouter } from 'react-router-dom'
 import { BrowserRouter as Router, Route, Switch, Redirect } from "react-router-dom";
 ReactDOM.render(
-    // <App /> 
-   
- <BrowserRouter> 
-
-
-    
-    <Switch>
-    <Route component={App} />
-
-                </Switch>
- 
+ <BrowserRouter>   
+   <Switch>
+      <Route component={App} />
+   </Switch>
  </BrowserRouter>
 
   , document.getElementById("root"));

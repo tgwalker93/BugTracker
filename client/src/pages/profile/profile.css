@@ -27,3 +27,6 @@
 #organizationNameColumn, #organizationIDColumn {
     font-size: 20px !important;
 }
+#viewBugColumn {
+    width: 50px !important;
+}

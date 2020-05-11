@@ -7,9 +7,6 @@ const strategy = new LocalStrategy(
         usernameField: 'username' // not necessary, DEFAULT
     },
     function (username, password, done) {
-        console.log("IM IN localStrategy!!!!!!!!!!!!!!");
-        console.log("here is username: " + username);
-        console.log(password);
         User.findOne({ 'email': username }, (err, userMatch) => {
             if (err) {
                 return done(err);
@@ -27,9 +24,6 @@ const strategy = new LocalStrategy(
             //     console.log(userMatch);
             //     return done(null, false, { message: 'Incorrect password' });
             // }
-
-            console.log("Password is a MATCH from LocalStrategy!!!!! Below is user match");
-            console.log(userMatch)
             return done(null, userMatch)
         })
     }

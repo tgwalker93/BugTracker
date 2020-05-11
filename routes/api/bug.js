@@ -13,9 +13,8 @@ var Organization = require("../../db/models/organization.js");
 
 //Getting bugs from the Database!
 app.get("/getAllBugs/:organizationMongoID", function (req, res) {
-    console.log("I'm in the getALL BUGS on the backend. Below is organization MONGO ID");
-    console.log(req.params.organizationMongoID);
-    resultObj = {
+
+    var resultObj = {
         
     }
     //Use the org id param to find the organization and its associated bugs
@@ -45,10 +44,6 @@ app.get("/getAllBugs/:organizationMongoID", function (req, res) {
 //Getting delete a bug from the Database!
 app.post("/deleteBug", function (req, res) {
 
-    console.log("i'm in the DELETE BUG BACKEND API/ ROUTE");
-    console.log(req.body);
-
-
     let update = {
         bugTitle: req.body.bugTitle,
         bugDescription: req.body.bugDescription,
@@ -56,7 +51,6 @@ app.post("/deleteBug", function (req, res) {
         status: req.body.status
     };
 
-    console.log("Constructing the Result obj to return to the client");
     var resultObj = {
         update: update   
     }
@@ -81,7 +75,6 @@ app.post("/deleteBug", function (req, res) {
                      Bug.deleteOne(filter, function (error, bugDoc) {
                                 // Log any errors
                                 if (error) {
-                                    console.log("Bug deleted back-end failed!")
                                     console.log(error);
                                     resultObj.error = true;
                                     resultObj.errorObj = error;
@@ -89,11 +82,8 @@ app.post("/deleteBug", function (req, res) {
                                 }
                                 // Or send the doc to the browser as a json object
                                 else {
-                                    console.log("Bug delete back-end was successful!");
                                     //Deleting the bug was a success, now we need to make sure that remove the bug from the Organization doc in DB
                                     //TODO
-                                    console.log(bugDoc);
-
                                     resultObj.deletedBugDoc = bugDoc;
                                     resultObj.message = "The Bug has been deleted.";
                                     resultObj.error = false;
@@ -112,11 +102,6 @@ app.post("/deleteBug", function (req, res) {
 
 //Updating a bug from the Database!
 app.post("/updateBug", function (req, res) {
-
-    console.log("i'm in the UPDATE BUG BACKEND");
-    console.log(req.body);
-
-
     let filter = { _id: req.body.mongoID};
     let options = {
         safe: true, 
@@ -129,21 +114,16 @@ app.post("/updateBug", function (req, res) {
     status: req.body.status,
     isCompleted: req.body.isCompleted };
 
-    console.log(req.body.mongoID);
-
     Bug
         .findOneAndUpdate(filter, update, options)
         .then(function (doc, error) {
             // Log any errors
             if (error) {
-                console.log("getUserData back-end failed!")
                 console.log(error);
                 res.json(error);
             }
             // Or send the doc to the browser as a json object
             else {
-                console.log("getUserData back-end was successful!");
-                console.log(doc);
                 res.json(doc);
             }
         })
@@ -157,10 +137,6 @@ app.post("/updateBug", function (req, res) {
 
 //Save a bug to the Database! 
 app.post("/saveBug", function (req, res) {
-    console.log("I'm in save bug post")
-    console.log(req.body);
-
-
     var resultObj = {
             bugTitle: req.body.bugTitle,
             bugDescription: req.body.bugDescription,
@@ -169,24 +145,18 @@ app.post("/saveBug", function (req, res) {
             status: req.body.status 
 
     };
-    console.log(resultObj);
 
     var entry = new Bug(resultObj);
-
-    console.log("here is bug");
-    console.log(entry);
 
     // Now, save that entry to the db
     entry.save(function (err, doc) {
         // Log any errors
         if (err) {
-            console.log("OHH NO I HAVE AN ERORR");
             console.log(err);
+            res.json(err);
         }
         // Or log the doc
         else {
-            console.log("SAVING NEW BUG SUCCESS FROM BACKEND");
-            console.log(doc);
             resultObj.bugDoc = doc;
             //Now that we saved the bugs, we need to find the Organization and add to it's array the new bug.
             // Use the organization id to find and update its' bugs
@@ -209,8 +179,6 @@ app.post("/saveBug", function (req, res) {
                          res.send(resultObj);
                     }
                 });
-            //res.json(resultObj)
-            // res.json(doc);
         }
     });
 
@@ -222,12 +190,11 @@ app.post("/saveBug", function (req, res) {
 //DELETE A Bug Comment
 app.post("/deleteBugComment/:id", function (req, res) {
 
-    console.log("I'm in deleteBugComment backend");
-    console.log(req.params.id);
     BugComment.findByIdAndRemove(req.params.id, function (error, doc) {
         // Log any errors
         if (error) {
             console.log(error);
+            res.json(error);
         }
         else {
             // Or send the document to the browser
@@ -239,9 +206,6 @@ app.post("/deleteBugComment/:id", function (req, res) {
 
 //SAVE A Bug Comment
 app.post("/saveBugComment", function (req, res) {
-
-    console.log("I'm in the save bug comment backend");
-    console.log(req.body);
 
      var now = new Date();
      
@@ -259,14 +223,13 @@ app.post("/saveBugComment", function (req, res) {
         timestamp: currentDateTime
     }
 
-    console.log(result);
     var newBugComment = new BugComment(result);
 
     // And save the new bug comment the db
     newBugComment.save(function (error, doc) {
-        // Log any errors
+        // Send any errors back to client
         if (error) {
-            console.log(error);
+            res.json(result);
         }
         // Otherwise
         else {
@@ -275,12 +238,9 @@ app.post("/saveBugComment", function (req, res) {
                 { safe: true, upsert: true })
                 // Execute the above query
                 .exec(function (err, doc) {
-
-                    console.log("Found bug and updated? Below is bug");
-                    console.log(doc);
-                    // Log any errors
+                    // Send any errors back to client
                     if (err) {
-                        console.log(err);
+                        res.json(err);
                     }
                     else {
                         // Or send the document to the browser
@@ -294,11 +254,8 @@ app.post("/saveBugComment", function (req, res) {
 
 //SEARCH Bug Comments BY BUG ID
 app.get("/getBugComments/:id", function (req, res) {
-
-    console.log("i'm in the GET BUG COMMENTS BACK END");
     // Using the id passed in the id parameter, prepare a query that finds the matching one in our db...
     bug = req.body._id;
-    console.log(req.params.id);
     Bug.findOne({ "_id": req.params.id })
         // ..and populate all of the bug comments associated with it
         .populate("bugComments")
@@ -307,6 +264,7 @@ app.get("/getBugComments/:id", function (req, res) {
             // Log any errors
             if (error) {
                 console.log(error);
+                res.json(error);
             }
             // Otherwise, send the doc to the browser as a json object
             else {
