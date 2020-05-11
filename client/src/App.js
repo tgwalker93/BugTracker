@@ -20,7 +20,8 @@ class App extends Component {
       lastName: null,
       mongoID: null,
       password: null,
-      redirectTo: null
+      redirectTo: null,
+      serverErrorMessage: ""
     }
     this._login = this._login.bind(this)
   }
@@ -84,8 +85,12 @@ class App extends Component {
             console.log("logged in FAILED!!!");
             console.log(response);
               this.setState({
-                loggedIn: false
+                loggedIn: false,
+                serverErrorMessage: response.data.error
+              }, () => {
+                  this.forceUpdate();
               })
+
         }
         }
       })
@@ -104,7 +109,7 @@ class App extends Component {
         <Redirect exact to={{ pathname: this.state.redirectTo }} render={() =>
           <LandingPage
             _login={this._login}
-
+            serverErrorMessage={this.state.serverErrorMessage}
           />}/> 
 
           
@@ -112,7 +117,7 @@ class App extends Component {
             render={() =>
               <LandingPage
                 _login={this._login}
-
+                serverErrorMessage={this.state.serverErrorMessage}
               />} />
           <Route exact path="/bug-view" component={BugView} />
           <Route exact path="/create-bug" component={CreateBug} />
@@ -137,7 +142,7 @@ class App extends Component {
                   render={() =>
                     <LandingPage
                       _login={this._login}
-
+                      serverErrorMessage={this.state.serverErrorMessage}
                     />} />
 
                 <Route exact path="/" render={() => (

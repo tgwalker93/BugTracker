@@ -9,9 +9,14 @@ body {
 
   }
 
-  .help-block {
-     color: red !important;   
-  }
+.help-block {
+    color: red !important;   
+    font-size:18px;
+}
+
+.jumbotron {
+  background-color: #d2ecd1 !important;
+}
   
 
 

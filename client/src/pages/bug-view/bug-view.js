@@ -380,10 +380,6 @@ class BugViewPage extends Component {
             .then(res => {
                 console.log("I got my res from render bug comments");
                 console.log(res);
-                //var bugCommentsArr = [];
-                // if(res.data.bugComment == null){
-                //     bugCommentsArr = [];
-                // }
                 if(res.data !== null){
                     this.setState({
                         bugCommentsInModal: res.data.bugComments

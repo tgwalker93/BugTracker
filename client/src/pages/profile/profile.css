@@ -11,3 +11,13 @@
       border: 1px solid black !important;
           text-align: center;
 }
+
+#noResultsHeader {
+    text-align: center;
+
+}
+
+.formFooterLink:hover {
+    cursor:pointer;
+    color:blue;
+}

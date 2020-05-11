@@ -76,14 +76,14 @@ class Profile extends Component {
 
         //Validating between the new password field and "confirm password" field that they match and are greather than or equal to 6 characters
         newPassword1and2Valid = this.state.newPassword1 === this.state.newPassword2 && this.state.newPassword1.length >= 6;
-        fieldValidationErrors.newPassword1and2 = "New password doesn't match or your password is less than 6 characters long.";
+        fieldValidationErrors.newPassword1and2 = "New password doesn't match or your password is less than 8 characters long.";
 
         //Validating that organization is greater than 3 characters
-        organizationNameValid = this.state.organizationNameValid.length > 3;
+        organizationNameValid = this.state.organizationNameValid.length >= 3;
         fieldValidationErrors.organizationName = "Organization Name must have atleast three characters.";
 
         //Validating that organization ID is greater than 6 characters
-        organizationIDValid = this.state.organizationIDInModal.length > 6;
+        organizationIDValid = this.state.organizationIDInModal.length >= 6;
         fieldValidationErrors.organizationID = "Organization ID must have atleast six characters.";
 
 
@@ -178,6 +178,7 @@ class Profile extends Component {
             currentModalTitle: "Edit Organization",
             setCreateOrganizationFieldsActiveInModal: false,
             setEditOrganizationFieldsActiveInModal: true,
+            setJoinOrganizationFieldsActiveInModal: false,
             setPasswordFieldsActiveInModal: false,
             organizationMongoIDInModal: organizationClickedOn._id,
             organizationNameInModal: organizationClickedOn.name,
@@ -415,7 +416,7 @@ class Profile extends Component {
                             </table>
 
 
-                        ) : (<h3> No Results to Display </h3>)}
+                        ) : (<h3 id="noResultsHeader"> No Results to Display </h3>)}
                         <br />
                         <br />
 

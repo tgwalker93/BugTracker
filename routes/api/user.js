@@ -28,12 +28,12 @@ app.get('/user', (req, res) => {
 
 
 
-
+//Sending forgot password email using the sendGridAPI
 app.post('/sendForgotPasswordEmail', (req, res, next) => {
 
-    console.log('I"M IN /sendEmail route from user.js on the backend');
-    console.log("Looking for user with the email below...");
-    console.log(req.body);
+    var responseObj = {
+
+    }
     let filter = { email: req.body.email };
 
     User
@@ -43,7 +43,7 @@ app.post('/sendForgotPasswordEmail', (req, res, next) => {
                 console.log("COULD NOT FIND USER WITH THAT EMAIL!")
                 console.log(error);
                 let responseObj = {
-                    error: true
+                    error: "Could not find a user with that email address. Please try again."
                 }
                 res.json(responseObj);
             }
@@ -66,8 +66,9 @@ app.post('/sendForgotPasswordEmail', (req, res, next) => {
 
                     // Log any errors
                     if (error) {
-                        console.log("getUserData back-end failed!")
-                        console.log(error);
+                        responseObj.errorObj=error;
+                        responseObj.error = "Something went wrong with saving the user that we found. Please try again.";
+
                     }
                     // Or send the doc to the browser as a json object
                     else {
@@ -123,22 +124,20 @@ app.post('/sendForgotPasswordEmail', (req, res, next) => {
                 axios
                     .post(query, emailObj, sendGridAPIConfig)
                     .then(APIres => {
-                        console.log("sending email was a success, status code is below");
-                        //console.log(`statusCode: ${res.statusCode}`)
-                        //APIres.error = false
                         let responseObj = 
                         {
-                            error: "false",
-                            message: "Email has been sent",
+                            message: "We found a user with that email address. An email has been sent!",
                             APIresponseObj: APIres
                         }
-                        //console.log(APIres.connection)
                         res.json(responseObj);
                     })
                     .catch(error => {
                         console.error(error)
-                        //error.error = true;
-                        res.json(error);
+                        var responseObj = {
+                            errorObj: error,
+                            error: "Something went wrong with the attempt to send email."
+                        }
+                        res.json(responseObj);
                     })
 
 
@@ -154,15 +153,7 @@ app.post('/sendForgotPasswordEmail', (req, res, next) => {
 
 })
 
-
-//login new user
-
-// app.post('/login', (req, res) => {
-//     console.log('HELLO??????????????????');
-    
-// })
-
-
+//Loggin in for the user (handled on app.js in the front end)
 app.post("/login",
     function (req, res, next) {
         console.log("IM IN LOGIN POST user /login")
@@ -178,10 +169,14 @@ app.post("/login",
             console.log(req.body);
 
             if(err){
-                res.json(err);
+                req.body.error = "Something went wrong with logging in."
+                console.log(req.body);
+                res.json(req.body);
             }
             else if(user === false){
                 req.body.loggedInSuccess = false;
+                req.body.error = "Could not find a user in our system with your email and password. Please try again."
+                console.log(req.body);
                 res.json(req.body);
             }
             else {
@@ -201,98 +196,6 @@ app.post("/login",
         })(req, res, next);
     })
 
-
-
-
-
-// app.post('/login',
-//     passport.authenticate('local', { failureRedirect: '/' }),
-//     function (req, res) {
-//         console.log("i'm in the LOGIN POST!!!!!!!!!!!!!!!!!!!");
-//         console.log(req.body);
-//         res.redirect('/');
-//     });
-
-
-
-
-// app.post('/login',
-
-//     function (req, res) {
-//         console.log("I'm in PASSPORT AUTHENTICATE, BELOW IS REQ AND THEN RES");
-//         console.log(req.body);
-//         //console.log(res);
-//         passport.authenticate('local', {
-//             successRedirect: '/',
-//             failureRedirect: '/'
-//         })
-//         // If this function gets called, authentication was successful.
-//         // `req.user` contains the authenticated user.
-//         res.redirect('/login');
-//     });
-
-
-// app.post('/login',
-//     passport.authenticate('local', {
-//         successRedirect: '/',
-//         failureRedirect: '/'
-//     }),
-//     function (req, res) {
-//         console.log("I'm in PASSPORT AUTHENTICATE, BELOW IS REQ AND THEN RES");
-//         console.log(req);
-//         console.log(res);
-//         // If this function gets called, authentication was successful.
-//         // `req.user` contains the authenticated user.
-//         res.redirect('/login');
-//     });
-
-
-
-
-
-// app.post(
-//     '/login',
-//     function (req, res, next) {
-//         console.log("/user/login called")
-//         console.log(req.body)
-//         console.log(passport);
-//         console.log('================')
-//         next()
-//     },
-//     passport.authenticate('local', {successRedirect: "/profile", failureRedirect: "/profile"}),
-//     (req, res) => {
-//         console.log('POST to /login')
-//         const user = JSON.parse(JSON.stringify(req.user)) // hack
-//         const cleanUser = Object.assign({}, user)
-//         if (cleanUser.properties) {
-//             console.log(`Deleting ${cleanUser.properties.password}`)
-//             delete cleanUser.properties.password
-//         }
-//         console.log(cleanUser);
-//         res.json({ user: cleanUser })
-//     },
-
-//     // funtion(err, user, info) {
-//     //     if(err) return next(err);}
-//     //     if (!user) {return res.redirect("/"); }
-//     //     req.LogIn(user, function(err) {
-//     //         if (err) {return next (err); }
-//     //         return res.redirect("/profile" + 
-//     //     }
-//     // }
-
-// )
-
-// app.get('/login', function (req, res, next) {
-//     passport.authenticate('local', function (err, user, info) {
-//         if (err) { return next(err); }
-//         if (!user) { return res.redirect('/'); }
-//         req.logIn(user, function (err) {
-//             if (err) { return next(err); }
-//             return res.redirect("/profile");
-//         });
-//     })(req, res, next);
-// });
 
 
 //Updating a user
@@ -377,14 +280,13 @@ app.post("/updateUser", function (req, res, next) {
 
 
 
-//Save a newly registered user in the database.
+//Save a newly registered user in the database. When user selected "Create Account"
 app.post("/saveUser", function (req, res) {
     console.log("I'm in save user post")
     console.log(req.body);
     var resultObj = {
                 email: req.body.email,
                 password: req.body.password,
-                username: "EMPTY",
                 firstName: req.body.firstName,
                 lastName: req.body.lastName
     };
@@ -395,21 +297,46 @@ app.post("/saveUser", function (req, res) {
     console.log("here is user");
     console.log(entry);
 
-    // Now, save that entry to the db
-    entry.save(function (err, doc) {
-        // Log any errors
-        if (err) {
-            console.log("OHH NO I HAVE AN ERORR");
-            console.log(err);
-        }
-        // Or log the doc
-        else {
-            console.log(doc);
-            resultObj.doc = doc;
-            res.json(resultObj)
-            // res.json(doc);
-        }
-    });
+    //We want to search our database to see if this email is already taken.
+    var filter = { email: req.body.email}
+    User
+        .findOne(filter)
+        .then(function (doc, error) {
+            // Log any errors
+            if (error) {
+                console.log("getUserData back-end failed!")
+                console.log(error);
+                resultObj.error = "Something went wrong with finding the User.";
+                resultObj.errorObj = error;
+                res.json(resultObj);
+            }
+            else if(doc === null){
+                //If no user is found, then we can proceed with saving the user
+                console.log("NO USER HAS BEEN FOUND");
+                entry.save(function (err, doc) {
+                    // Log any errors
+                    if (err) {
+                        console.log("OHH NO I HAVE AN ERORR");
+                        console.log(err);
+                    }
+                    // Or log the doc
+                    else {
+                        console.log(doc);
+                        resultObj.doc = doc;
+                        res.json(resultObj)
+                        // res.json(doc);
+                    }
+                });
+            }
+            else {
+                console.log("User has been found!!!");
+                resultObj.error = "A user with that email address already exists."
+                res.json(resultObj);
+            }
+        })
+        .catch(err => res.status(422).json(err));
+
+
 
     });
 
