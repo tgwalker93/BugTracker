@@ -52,7 +52,7 @@ font-size: 20px !important;
 }
 
 #userAssignedColumn, #statusColumn {
-    width: 145px !important;
+    width: 150px !important;
 }
 #editColumn, #deleteColumn, #isCompletedColumn{
     width: 50px !important;

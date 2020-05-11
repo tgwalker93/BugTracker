@@ -443,12 +443,10 @@ class Profile extends Component {
                                     {this.state.organizations.map(organization => {
                                         return (
                                             <tr className="organizationTable_tr" key={organization._id}>
-                                                <td className="organizationTable_td">{organization.name}</td>
-                                                <td className="organizationTable_td">{organization.organizationID}</td>
+                                                <td id="organizationNameColumn" className="organizationTable_td">{organization.name}</td>
+                                                <td id="organizationIDColumn" className="organizationTable_td">{organization.organizationID}</td>
                                                 <td className="organizationTable_td">
                                                     
-                                                    {console.log("ORGANIZATION USERS!!")}
-                                                    {console.log(organization.users)}
                                                     <Link to={{pathname: "/bug-view", state: {organizationMongoID: organization._id, organizationName: organization.name, organizationUsers: organization.users, userFirstName: this.state.userFirstName, userLastName: this.state.userLastName}}} className="log" ><Button>View Bugs</Button></Link>
                                                     </td>
                                                 <td id="editColumn" className="organizationTable_td">
@@ -481,7 +479,7 @@ class Profile extends Component {
                         {/* This modal will pop up for changing password! */}
                         <Modal show={this.state.showModal} animation={false}>
                             <Modal.Header>
-                                <Modal.Title>{this.state.currentModalTitle}</Modal.Title>
+                                <Modal.Title><h3>{this.state.currentModalTitle}</h3></Modal.Title>
                             </Modal.Header>
                             <Modal.Body>
 

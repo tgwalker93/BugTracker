@@ -245,8 +245,9 @@ app.post("/saveBugComment", function (req, res) {
 
      var now = new Date();
      
-    var currentDateTime = now.getDate() + "/"
-        + (now.getMonth() + 1) + "/"
+    var currentDateTime = 
+        (now.getMonth() + 1) + "/"
+        +now.getDate() + "/"
         + now.getFullYear() + " @ "
         + now.getHours() + ":"
         + now.getMinutes() + ":"

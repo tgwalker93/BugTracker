@@ -245,9 +245,6 @@ class BugViewPage extends Component {
         if(currentBug){
             currentBug.text = this.state.currentBugCommentInModal;
        
-
-        console.log("Im in the addBugComment Method on bugview page. Below is currentBug");
-        console.log(currentBug);
         if (this.state.currentBugCommentInModal) {
             API.saveBugComment(currentBug)
                 .then(res => this.renderBugComments(currentBug))
@@ -267,7 +264,8 @@ class BugViewPage extends Component {
                 console.log(res);
                 if(res.data !== null){
                     this.setState({
-                        bugCommentsInModal: res.data.bugComments
+                        bugCommentsInModal: res.data.bugComments,
+                        currentBugCommentInModal: ""
                     })
                 }
             })
@@ -307,11 +305,9 @@ class BugViewPage extends Component {
         }
     }
     closeModal = () => {
-        this.setState({ showModal: false, bugTitleInModal: "", bugDescriptionInModal: "", currentBugCommentInModal: "", formErrors: {bugTitle: ""} });
-        console.log("I'm in closemodal!! Below is the bug object");
-        console.log(this.state.bugData[this.state.currentIndex]);
-        console.log(this.state.bugUserAssignedInModal);
-        console.log(this.state.bugStatusInModal);
+        this.setState({ showModal: false, bugTitleInModal: "", bugDescriptionInModal: "", currentBugCommentInModal: "", 
+        bugStatusInModal: "", bugUserAssignedInModal:"", formErrors: {bugTitle: ""},
+    currentBugCommentInModal: "" });
     }
     //*********************** END OF MODAL BUTTON CLICK METHODS ****************************
 
@@ -379,9 +375,6 @@ class BugViewPage extends Component {
         for (var i = 0; i < this.state.bugData.length; i++) {
             this.state.bugData[i].id = i;
         }
-        // for(var j=0; j<this.state.completedBugData.length; j++){
-        //     this.state.completedBugData[j].id = j;
-        // }
     }
 
     //If you click "Show Completed Bugs" or "Hide Completed Bugs", this will show or hide.
@@ -413,9 +406,7 @@ class BugViewPage extends Component {
        }
 
         this.setState({ selectedBug: bug }, () => {
-            //this.adjustBugDataOrder();
             this.updateBugInDB();
-            //this.checkBothCompletedAndActiveBugData(this.state.bugData)
             this.forceUpdate();
         });
 
@@ -426,6 +417,8 @@ class BugViewPage extends Component {
     render() {
 
 
+
+        //FIRST WE FILTER THE NON COMPLETED BUGS
         if (this.state.userFilter !== "" || this.state.statusFilter !== ""){
             this.state.filteredBugData  = [];
             this.state.bugData.map(bug => {
@@ -657,7 +650,7 @@ class BugViewPage extends Component {
 
 
                                                             </td>
-                                                            <td className="bugViewTable_td">{bug.bugTitle}</td>
+                                                            <td id="titleColumn" className="bugViewTable_td">{bug.bugTitle}</td>
                                                             <td id="userAssignedColumn" className="bugViewTable_td">{bug.userAssigned}</td>
                                                             <td id="statusColumn" className="bugViewTable_td">{bug.status}</td>
                                                         </tr>
@@ -693,7 +686,7 @@ class BugViewPage extends Component {
                         <Modal show={this.state.showModal} animation={false}>
                             <Modal.Header>
                                 <Button className='btn btn-danger note-delete xButton' id="bugModalXButton" onClick={() => this.closeModal()}>X</Button>
-                                <Modal.Title>{this.state.currentModalTitle}</Modal.Title>
+                                <Modal.Title><h3>{this.state.currentModalTitle}</h3></Modal.Title>
                             </Modal.Header>
                             <Modal.Body>
 
@@ -718,7 +711,6 @@ class BugViewPage extends Component {
                                     </div>
                                     :
                                     ""}
-                                <br />
                                 <br />
                                 <label htmlFor="bugStatusInModal"><strong>Status</strong></label>  <br />
                                 <select label="Status" value={this.state.bugStatusInModal} onChange={this.handleChange.bind(this)} id="bugStatusInModal" name="bugStatusInModal">
