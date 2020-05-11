@@ -420,7 +420,9 @@ class BugViewPage extends Component {
         });
 
     }
+    handleLogoutButtonClick = () => {
 
+    }
     render() {
 
 
@@ -499,6 +501,7 @@ class BugViewPage extends Component {
         }
         return (
              <Container id="containerViewBugs" fluid="true">
+                <Link to={{ pathname: "/landing-page", state: { userFirstName: this.state.userFirstName, userLastName: this.state.userLastName } }} className="logoutButton"><Button id="logoutButton" onClick={this.handleLogoutButtonClick.bind(this)}>Logout</Button> </Link>
                 <Row id="mainRow">
                     <Col size="sm-12">
                         <div className="jumbotron jumbotron-fluid">

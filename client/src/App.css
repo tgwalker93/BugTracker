@@ -8,7 +8,10 @@ body {
     font-family: 'Gotham';
 
   }
-
+.logoutButton {
+  float:right !important;
+  margin-bottom: 10px !important;
+}
 .help-block {
     color: red !important;   
     font-size:18px;

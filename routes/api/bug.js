@@ -243,12 +243,14 @@ app.post("/saveBugComment", function (req, res) {
     console.log("I'm in the save bug comment backend");
     console.log(req.body);
 
-     var currentDateTime = currentdate.getDate() + "/"
-        + (currentdate.getMonth() + 1) + "/"
-        + currentdate.getFullYear() + " @ "
-        + currentdate.getHours() + ":"
-        + currentdate.getMinutes() + ":"
-        + currentdate.getSeconds();
+     var now = new Date();
+     
+    var currentDateTime = now.getDate() + "/"
+        + (now.getMonth() + 1) + "/"
+        + now.getFullYear() + " @ "
+        + now.getHours() + ":"
+        + now.getMinutes() + ":"
+        + now.getSeconds();
     // Create a new bug comment and pass the req.body to the entry
     let result = {
         title: req.body.text,

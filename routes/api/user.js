@@ -180,7 +180,11 @@ app.post("/login",
                 res.json(req.body);
             }
             else {
-                //Since we found the user in the database, we have a successful login. But we don't want to send all the data back to the client.
+
+
+                console.log("below is req");
+                console.log(req.body);
+
                 userObjToSendBackToClient =
                 {
                     username: req.body.username,

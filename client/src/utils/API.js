@@ -5,7 +5,7 @@ export default {
     // USER CALLS  -----
     user: function () {
         console.log("i'm in API.js file, calling user");
-        return axios.get("/api/user");
+        return axios.get("/api/user/user");
     },
     sendForgotPasswordEmail(userObj) {
         console.log("i'm in API.JS on the front end");

@@ -15,6 +15,7 @@ class App extends Component {
     this.state = {
       loggedIn: false,
       user: null,
+      userId: null,
       firstName: null,
       lastName: null,
       mongoID: null,
@@ -26,7 +27,10 @@ class App extends Component {
   }
   componentDidMount() {
     API.user().then(response => {
-      if (!!response.data.user) {
+
+      console.log("Just got response from api, here it is");
+      console.log(response);
+      if (response.data.user) {
         console.log("Attempt to login on App.js from componentDidMount");
         console.log(response.data);
         this.setState({
@@ -70,6 +74,8 @@ class App extends Component {
           // update the state
           this.setState({
             loggedIn: true,
+            user: response.data.user,
+            // userId: response.data.user._id,
             username: response.data.username,
             mongoID: response.data.mongoID,
             firstName: response.data.firstName,
@@ -119,7 +125,7 @@ class App extends Component {
                 serverErrorMessage={this.state.serverErrorMessage}
               />} />
           <Route exact path="/bug-view" component={BugView} />
-              <Route exact path="/profile" render={() => <Profile loggedIn={this.state.loggedIn} username={this.state.username} mongoID={this.state.mongoID} firstName={this.state.firstName} lastName={this.state.lastName}/>} />
+          <Route exact path="/profile" render={() => <Profile loggedIn={this.state.loggedIn} user={this.state.user} username={this.state.username} mongoID={this.state.mongoID} firstName={this.state.firstName} lastName={this.state.lastName}/>} />
 
           <Route exact path="/" render={() => (
             <Redirect to="/landing-page" />
