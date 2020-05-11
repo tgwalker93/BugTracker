@@ -23,6 +23,17 @@
     width:  875px;
 }
 
+#cancelInsideNote {
+    float: right !important;
+    margin-right: 10px !important;
+} 
+
+.comment-text {
+    font-size:20px !important;
+}
+.date-text {
+    font-size: 12px !important;
+}
 
 
 /* React Modal "fade in ability" adds a "backdrop" that defaults to a 100% black screen for some reason */
@@ -30,11 +41,29 @@
     display:none !important;
 
 }
-
-#editColumn, #deleteColumn, #isCompletedColumn, #userAssignedColumn, #statusColumn {
-    width: 50px !important;
+.modal-content {
+    font-size: 20px !important;
+}
+.form-control {
+font-size: 20px !important;
+}
+#organizationNameInBugTitle {
+    text-align: center !important;
 }
 
+#userAssignedColumn, #statusColumn {
+    width: 145px !important;
+}
+#editColumn, #deleteColumn, #isCompletedColumn{
+    width: 50px !important;
+}
+#titleColumn, #userAssignedColumn, #statusColumn {
+    font-size: 20px !important;
+}
+#bugViewTable_head {
+    font-size: 20px !important;
+}
+#userAssignedColumn, #statusColumn
 #organizationNameInBugTitle, .noResultsMessage, .completedBugsTitle, .activeBugsTitle {
     text-align: center;
 }

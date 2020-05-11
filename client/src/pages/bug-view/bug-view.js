@@ -30,6 +30,7 @@ class BugViewPage extends Component {
             bugTitleInModal: "",
             bugCommentsInModal: [],
             users: [{text: 'Tyler', id: '1'}, {text: 'Tawny', id: '2'}, {text: 'Anthony', id: '3'}, {text: 'Arthur', id:'4'}],
+            organizationUsers: [],
             currentBugCommentInModal:"",
             bugDescriptionInModal: "",
             bugStatusInModal: "",
@@ -39,6 +40,8 @@ class BugViewPage extends Component {
             organizationMongoID: "",
             organizationNameInTitle: "",
             formSubmitButtonText: "Submit",
+            userFirstName: "",
+            userLastName: "",
             showActiveBugs: true,
             showCompletedBugs: false,
             isCurrentBugCompleted: false
@@ -343,10 +346,22 @@ class BugViewPage extends Component {
 
     //CALLS THIS WHEN THE COMPONENT MOUNTS, basically "on page load"
     componentDidMount() {
-        console.log("Component Did Mount has been called");
-        console.log("BELOW IS THE PASSED PROPS STATE");
-        console.log(this.props.location.state);
-        this.setState({ organizationMongoID: this.props.location.state.organizationMongoID, organizationNameInTitle: this.props.location.state.organizationName }, () => {
+        console.log("Component Did Mount has been called in Bug View Page!!");
+        console.log("BELOW IS THE PASSED users");
+        console.log(this.props);
+
+        var organizationUsersArray = [];
+        for(var i =0; i<this.props.location.state.organizationUsers.length; i++){
+            organizationUsersArray.push(
+                {
+                    text: this.props.location.state.organizationUsers[i],
+                    id: i
+                }
+            )
+        }
+        this.setState({ organizationMongoID: this.props.location.state.organizationMongoID, organizationNameInTitle: this.props.location.state.organizationName,
+            organizationUsers: organizationUsersArray,
+        userFirstName: this.props.location.state.userFirstName, userLastName: this.props.location.state.userLastName }, () => {
             this.getBugsFromDB();
         });
 
@@ -496,17 +511,24 @@ class BugViewPage extends Component {
                         <br />
                         <Row>
                             <Col size="sm-1">
-                                <p><strong>Assignee </strong> </p>
+                                {this.state.organizationUsers ?
+                                <div>
+                                <label htmlFor="userFilter">Assignee </label>
                                 <select value={this.state.userFilter} onChange={this.handleChange.bind(this)} id="userFilter" name="userFilter">
                                     <option className="dropdown-item" href="#" value=""></option>
-                                    <option className="dropdown-item" href="#" value="Tyler">Tyler</option>
-                                    <option className="dropdown-item" href="#" value="Tawny">Tawny</option>
-                                    <option className="dropdown-item" href="#" value="Anthony">Anthony</option>
-                                    <option className="dropdown-item" href="#" value="Arthur">Arthur</option>
+                                        {this.state.organizationUsers.map(user => {
+                                        return (
+                                            <option className="dropdown-item" href="#" key={user.id} value={user.text}>{user.text}</option>
+                                              )
+                                        })
+                                     }
                                 </select>
+                                    </div>
+                                : 
+                                ""}
                             </Col>
                             <Col size="sm-1">
-                                <p><strong>Status</strong></p>
+                                <label htmlFor="statusFilter">Status</label>
                                 <select value={this.state.statusFilter} onChange={this.handleChange.bind(this)} id="statusFilter" name="statusFilter">
                                     <option className="dropdown-item" href="#" value=""></option>
                                     <option className="dropdown-item" href="#" value="Open">Open</option>
@@ -567,7 +589,7 @@ class BugViewPage extends Component {
                                                                             <span className="checkmark"></span>
                                                                         </label>
                                                                     </td>
-                                                                    <td className="bugViewTable_td">{bug.bugTitle}</td>
+                                                                    <td id="titleColumn" className="bugViewTable_td">{bug.bugTitle}</td>
                                                                     <td id="userAssignedColumn" className="bugViewTable_td">{bug.userAssigned}</td>
                                                                     <td id="statusColumn" className="bugViewTable_td">{bug.status}</td>
                                                                     <td id="editColumn" className="bugViewTable_td">
@@ -678,14 +700,21 @@ class BugViewPage extends Component {
                                 formgroupclass={`form-group ${this.errorClass(this.state.formErrors.bugTitle)}`}
                                 id="bugTitleInModal" onChange={this.handleChange.bind(this)} name="bugTitleInModal" />
                                 <br />
-                                <label htmlFor="bugUserAssignedInModal"><strong>Assignee</strong></label> <br />
-                                <select label="Assignee" value={this.state.bugUserAssignedInModal} onChange={this.handleChange.bind(this)} id="bugUserAssignedInModal" name="bugUserAssignedInModal">
-                                    <option className="dropdown-item" href="#" value=""></option>
-                                    <option className="dropdown-item" href="#" value="Tawny">Tawny</option>
-                                    <option className="dropdown-item" href="#" value="Anthony">Anthony</option>
-                                    <option className="dropdown-item" href="#" value="Tyler">Tyler</option>
-                                    <option className="dropdown-item" href="#" value="Arthur">Arthur</option>
-                                </select>
+                                {this.state.organizationUsers ?
+                                    <div>
+                                        <label htmlFor="bugUserAssignedInModal"><strong>Assignee</strong></label> <br />
+                                        <select label="Assignee" value={this.state.bugUserAssignedInModal} onChange={this.handleChange.bind(this)} id="bugUserAssignedInModal" name="bugUserAssignedInModal">
+                                            <option className="dropdown-item" href="#" value=""></option>
+                                            {this.state.organizationUsers.map(user => {
+                                                return (
+                                                    <option className="dropdown-item" href="#" key={user.id} value={user.text}>{user.text}</option>
+                                                )
+                                            })
+                                            }
+                                        </select>
+                                    </div>
+                                    :
+                                    ""}
                                 <br />
                                 <br />
                                 <label htmlFor="bugStatusInModal"><strong>Status</strong></label>  <br />
@@ -715,12 +744,13 @@ class BugViewPage extends Component {
                                                     {this.state.bugCommentsInModal.map(bugComment => {
                                                         let boundBugCommentClick = this.deleteBugComment.bind(this, bugComment);
                                                         return (
-                                                            <BugCommentPanel key={bugComment._id} text={bugComment.text}>
-                                                                <div>
-                                                                    <button className='btn btn-danger bugComment-delete insideNote' onClick={boundBugCommentClick}> X </button>
-                                                                </div>
+                                                            <div>
+                                                                <Button className='btn btn-danger bugComment-delete insideNote' id='cancelInsideNote' onClick={boundBugCommentClick}> X </Button>
+                                                           
+                                                                <BugCommentPanel key={bugComment._id} text={this.state.userFirstName + " " + this.state.userLastName + ": " + bugComment.text} date={bugComment.timestamp}>
 
                                                             </BugCommentPanel>
+                                                            </div>
                                                         );
                                                     })}
                                                 </div>

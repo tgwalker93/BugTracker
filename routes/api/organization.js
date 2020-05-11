@@ -16,7 +16,8 @@ app.post("/saveOrganization", function (req, res) {
     let result = {
         name: req.body.organizationName,
         organizationID: req.body.organizationID,
-        userWhoCreatedOrgMongoID: req.body.mongoID
+        userWhoCreatedOrgMongoID: req.body.mongoID,
+        users: [req.body.userFirstName + " " + req.body.userLastName]
     }
 
     console.log(result);
@@ -80,6 +81,7 @@ app.post("/saveOrganization", function (req, res) {
 
 });
 
+//UPDATING AN ORGANIZATION
 app.post("/updateOrganization", function(req, res) {
     console.log("i'm in the updateOrganization BACKEND");
     console.log(req.body);
@@ -185,47 +187,49 @@ app.post("/attachUserToOrganization", function (req, res) {
                //First, if the user is already in the organization, we don't want the user to join again. So we will send error message back.
                 //We want to search our database to see if this email is already taken.
                 var filter = { _id: resultObj.userMongoID }
-                User
-                    .findOne(filter)
-                    .then(function (userDoc, error) {
-                        // Log any errors
-                        if (error) {
-                            console.log("getUserData back-end failed!")
-                            console.log(error);
-                            resultObj.error = "Something went wrong with finding the User.";
-                            resultObj.errorObj = error;
-                            res.json(resultObj);
-                        }
-                        else if (userDoc === null) {
-                            //If no user is found, then something went wrong with the client.
-                            resultObj.error = "No user found.";
-                            res.json(resultObj);
-                            console.log("NO USER HAS BEEN FOUND");
-                        }
-                        else {
-                            //Once we find the user, we need to see if he already has this organization
-                            var userAlreadyHasOrganization = false;
-                            console.log("user doc organizations");
 
-                            console.log(userDoc.organizations);
-                            console.log("organization doc");
-                            console.log(organizationDoc);
-                            for(var i = 0; i<userDoc.organizations.length; i++){
-                                console.log("searching for organizations");
-                                console.log(userDoc.organizations[i]);
-                                console.log("------ COMPARED WITH " + organizationDoc._id)
-                                if (userDoc.organizations[i].toString() === organizationDoc._id.toString()){
-                                    userAlreadyHasOrganization = true;
-                                    console.log("IS TRUE");
-                                }
+                var userIsAlreadyInOrganization = false;
+                //Before we update user or organization, we want to make sure user is not already in organzation
+                for(var i = 0; i<organizationDoc.users.length; i++){
+                    if(organizationDoc.users[i] === req.body.userFirstName + " " + req.body.userLastName){
+                        userIsAlreadyInOrganization = true;
+                    }
+                }
+                if(userIsAlreadyInOrganization){
+                    //Otherwise, we will officially send error messsage.
+                    resultObj.error = "You have already joined that organization.";
+                    res.json(resultObj);
+                } else {
+                    console.log("right beofore I UPDATE USER");
+                    console.log(userIsAlreadyInOrganization);
+
+
+                    // Use the User id to find and update its' organization
+                    User.findOneAndUpdate({ "_id": req.body.mongoID }, { $push: { "organizations": organizationDoc._id } },
+                        { safe: true, upsert: true })
+                        // Execute the above query
+                        .exec(function (err, userDoc) {
+
+                            console.log("Found USER AND UPDATED");
+                            console.log(userDoc);
+                            // Log any errors
+                            if (err) {
+                                console.log(err);
                             }
-
-                            //If user does NOT have organization already, then we can proceed with having him join it. 
-                            if(!userAlreadyHasOrganization){
+                            else {
+                                // Or send the document to the browser
                                 console.log("RIGHT BEOFRE I TRY TO UPDATE USER");
-                                userDoc.organizations.push(organizationDoc._id);
-                                // Now, save that entry to the db
-                                userDoc.save(function (err, afterUserIsSavedDoc) {
+
+                                //Now that we saved the user, we need to push his name to the Organization user list
+                                // Use the User id to find and update its' organization
+                                resultObj.successMessage = "You've successfully joined an organization.";
+                                console.log("successfully safed user to org");
+                                console.log(userDoc);
+                                resultObj.newUserObj = userDoc;
+                                resultObj.organizations = userDoc.organizations;
+                                organizationDoc.users.push(userDoc.firstName + " " + userDoc.lastName);
+                                //And then save Organization
+                                organizationDoc.save(function (err, afterOrganizationIsSaved) {
                                     // Log any errors
                                     if (err) {
                                         console.log("OHH NO I HAVE AN ERORR");
@@ -233,27 +237,20 @@ app.post("/attachUserToOrganization", function (req, res) {
                                         resultObj.error = "Something went wrong when trying to save the user";
                                         res.json(resultObj);
                                     }
-                                   
+
                                     else {
                                         resultObj.successMessage = "You've successfully joined an organization.";
-                                        console.log("successfully safed user to org");
-                                        console.log(afterUserIsSavedDoc);
-                                        resultObj.newUserObj = afterUserIsSavedDoc;
-                                        resultObj.organizations = afterUserIsSavedDoc.organizations;
+                                        console.log("successfully saved user to org");
                                         res.json(resultObj);
+
                                     }
                                 });
 
-                            } else {
-                                //Otherwise, we will officially send error messsage.
-                                resultObj.error = "You have already joined that organization.";
-                                res.json(resultObj);
-
                             }
+                        });
 
-                        }
-                    })
-                    .catch(err => res.status(422).json(err));
+  
+                }
             }
         });
 
@@ -338,9 +335,32 @@ app.post("/deleteOrganization", function (req, res) {
                                         })
                             }else {
                                 //IF user is NOT owner of organization, then user will only LEAVE that organization
-                                //At this point, we updated the user obj, so that is all that we need, we can send response back to client.
+                                //At this point, we need to update the organization users list
                                 resultObj.message = "User has left the organization.";
-                                res.json(resultObj);
+                                console.log("about to update organization");
+                                    console.log("first name is " + req.body.userFirstName + " and lastname is " + req.body.userLastName);
+                                    var filter = { _id: resultObj.organizationMongoID };
+                                    Organization
+                                        .findOneAndUpdate(filter, { $pullAll: { users: [req.body.userFirstName + " " + req.body.userLastName] } }, function (error, doc) {
+                                            // Log any errors
+                                            if (error) {
+                                                console.log("organization leave back-end failed!")
+                                                console.log(error);
+                                                resultObj.error = true;
+                                                resultObj.errorObj = error;
+                                                res.json(error);
+                                            }
+                                            // Or send the doc to the browser as a json object
+                                            else {
+                                                console.log("Organization UPDATED back-end was successful!");
+                                                //Updating the organization was a success,
+                                                console.log(doc);
+                                                resultObj.deletedOrganizationDoc = doc;
+                                                resultObj.message = "You have successfully left the organization.";
+                                                res.json(resultObj);
+
+                                            }
+                                        })
 
                             }
 

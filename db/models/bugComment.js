@@ -17,8 +17,8 @@ var BugCommentSchema = new Schema({
         type: String
     },
     timestamp: {
-        type: Date,
-        default: Date.now()
+        type: String,
+        default: Date.now().toString()
     }
 });
 

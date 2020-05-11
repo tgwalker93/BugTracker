@@ -39,6 +39,8 @@ class Profile extends Component {
             successMessage: "",
             serverErrorMessage:"",
             currentModalTitle: "",
+            userFirstName: "",
+            userLastName: "",
             userData: [],
             organizations: []
         };
@@ -46,8 +48,11 @@ class Profile extends Component {
 
     componentDidMount() {
       
-        console.log("Component mounted in Profile, below is MongoID");
+        console.log("Component mounted in Profile, below is user data");
         console.log(this.props.mongoID);
+        console.log(this.props.firstName);
+        console.log(this.props.lastName);
+        this.setState({ userFirstName: this.props.firstName, userLastName: this.props.lastName});
         this.getOrganizationsOfUserInDB();
         
     }
@@ -242,7 +247,9 @@ class Profile extends Component {
             username: this.props.username,
             mongoID: this.props.mongoID,
             organizationName: this.state.organizationNameInModal,
-            organizationID: this.state.organizationIDInModal
+            organizationID: this.state.organizationIDInModal,
+            userFirstName: this.props.firstName,
+            userLastName: this.props.lastName
         }
 
         API.saveOrganizationInDB(userObj)
@@ -301,7 +308,9 @@ class Profile extends Component {
             newPassword: this.state.newPassword1,
             username: this.props.username,
             mongoID: this.props.mongoID,
-            organizationID: this.state.organizationIDInModal
+            organizationID: this.state.organizationIDInModal,
+            userFirstName: this.props.firstName,
+            userLastName: this.props.lastName
         }
         API.attachUserToOrganizationInDB(userObj)
             .then(response => {
@@ -330,16 +339,19 @@ class Profile extends Component {
     }
 
     handleDeleteOrganizationInDB(organizationClickedOn) {
+        console.log("IN DELETE ORGANIZATION ON PROFILE PAGE -----------------------------------------------------------------------------")
         var isUserOrganizationOwner = false;
         if (this.props.mongoID === organizationClickedOn.userWhoCreatedOrgMongoID){
             isUserOrganizationOwner = true;
         }
+        console.log("here is first name: " + this.state.userFirstName + " this is last name : " + this.state.userLastName)
         var organizationObj = {
             organizationMongoID: organizationClickedOn._id,
             userMongoID: this.props.mongoID,
             organizationData: organizationClickedOn,
-            isUserOrganizationOwner: isUserOrganizationOwner
-
+            isUserOrganizationOwner: isUserOrganizationOwner,
+            userFirstName: this.state.userFirstName,
+            userLastName: this.state.userLastName
         }
         API.deleteOrganizationInDB(organizationObj)
             .then(res => {
@@ -358,7 +370,9 @@ class Profile extends Component {
             mongoID: this.props.mongoID,
             organizationMongoID: this.state.organizationMongoIDInModal,
             organizationName: this.state.organizationNameInModal,
-            organizationID: this.state.organizationIDInModal
+            organizationID: this.state.organizationIDInModal,
+            userFirstName: this.props.firstName,
+            userLastName: this.props.lastName
         }
 
         API.updateOrganizationInDB(userObj)
@@ -428,8 +442,9 @@ class Profile extends Component {
                                                 <td className="organizationTable_td">{organization.organizationID}</td>
                                                 <td className="organizationTable_td">
                                                     
-                                                    
-                                                    <Link to={{pathname: "/bug-view", state: {organizationMongoID: organization._id, organizationName: organization.name}}} className="log" ><Button>View Bugs</Button></Link>
+                                                    {console.log("ORGANIZATION USERS!!")}
+                                                    {console.log(organization.users)}
+                                                    <Link to={{pathname: "/bug-view", state: {organizationMongoID: organization._id, organizationName: organization.name, organizationUsers: organization.users, userFirstName: this.state.userFirstName, userLastName: this.state.userLastName}}} className="log" ><Button>View Bugs</Button></Link>
                                                     </td>
                                                 <td id="editColumn" className="organizationTable_td">
                                                     {this.props.mongoID === organization.userWhoCreatedOrgMongoID ?
