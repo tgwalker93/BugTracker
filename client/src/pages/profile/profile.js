@@ -30,10 +30,12 @@ class Profile extends Component {
             organizationIDInModal: "",
             organizationMongoIDInModal: "",
             oldPasswordValid: true,
-            newPassword1and2Valid: false,
+            newPassword1And2Valid: false,
             organizationNameValid: false,
             organizationIDValid: false,
             showModal: false,
+            successMessage: "",
+            serverErrorMessage:"",
             currentModalTitle: "",
             userData: [],
             organizations: []
@@ -65,7 +67,7 @@ class Profile extends Component {
 
     validateFields() {
         let fieldValidationErrors = this.state.formErrors;
-        let newPassword1and2Valid = this.state.newPassword1Valid;
+        let newPassword1And2Valid = this.state.newPassword1And2Valid;
         let organizationNameValid =  this.state.organizationNameValid;
         let organizationIDValid = this.state.organizationIDValid;
 
@@ -75,11 +77,11 @@ class Profile extends Component {
         console.log("newPassword2 is: " + this.state.newPassword2);
 
         //Validating between the new password field and "confirm password" field that they match and are greather than or equal to 6 characters
-        newPassword1and2Valid = this.state.newPassword1 === this.state.newPassword2 && this.state.newPassword1.length >= 6;
+        newPassword1And2Valid = (this.state.newPassword1 === this.state.newPassword2) && this.state.newPassword1.length >= 6;
         fieldValidationErrors.newPassword1and2 = "New password doesn't match or your password is less than 8 characters long.";
 
         //Validating that organization is greater than 3 characters
-        organizationNameValid = this.state.organizationNameValid.length >= 3;
+        organizationNameValid = this.state.organizationNameInModal.length >= 3;
         fieldValidationErrors.organizationName = "Organization Name must have atleast three characters.";
 
         //Validating that organization ID is greater than 6 characters
@@ -90,12 +92,12 @@ class Profile extends Component {
 
         console.log("organizationIDValid is: " + organizationIDValid);
         console.log("organizationNameValid: " + organizationNameValid);
-        console.log("password1And2Valid: "+ newPassword1and2Valid);
+        console.log("password1And2Valid: " + newPassword1And2Valid);
         //TODO --- HANDLE FORM VALIDATION
 
         this.setState({
             formErrors: fieldValidationErrors,
-            newPassword1and2Valid: newPassword1and2Valid,
+            newPassword1And2Valid: newPassword1And2Valid,
             organizationIDValid: organizationIDValid,
             organizationNameValid: organizationNameValid
         }, () => {
@@ -117,7 +119,7 @@ class Profile extends Component {
                     }
                 } else if (this.state.setPasswordFieldsActiveInModal) {
                     //For UPDATE password
-                    if (newPassword1and2Valid){     
+                    if (newPassword1And2Valid){     
                         this.updatePasswordInDB();
                     }
                 }
@@ -126,8 +128,6 @@ class Profile extends Component {
 
     
     handleChangePasswordButtonClick = event => {
-        //event.preventDefault();
-
         this.setState({
             showModal: true,
             currentModalTitle: "Change Password",
@@ -153,19 +153,23 @@ class Profile extends Component {
                 if (!response.data.error) {
                     console.log("UpdatePassword successful in Profile Page, below is response.data");
                     console.log(response.data);
+                    this.setState({ successMessage: "Successfully updated password."})
+                    this.closeModal();
 
                 } else {
                     console.log("Updating USER PASSWORD WAS A FAIL!!!! Below is the response.data");
                     console.log(response.data);
-                    this.setState({ showModal: false });
+                    this.setState({ serverErrorMessage: response.data.error, formErrors: { oldPassword: "", newPassword1and2: "", organizationName: "", organizationID: "", serverErrorMessage: "" }})
                 }
             })
         
     }
     closeModal = () => {
+        //Reset all the fields so they don't show up again when you try to open the modal again.
         this.setState({ showModal: false, organizationIDValid: true,
-        organizationNameValid: true, newPassword1and2Valid: true, 
-            formErrors: { oldPassword: "", newPassword1and2: "", organizationName: "", organizationID: "" } });
+        organizationNameValid: true, oldPasswordValid: true, newPassword1Valid: true, newPassword2Valid: true,
+            organizationNameInModal: "", organizationIDInModal: "", oldPassword: "", newPassword: "", newPassword2: "", serverErrorMessage:"",
+            formErrors: { oldPassword: "", newPassword1and2: "", organizationName: "", organizationID: "", serverErrorMessage:"" } });
     }
     //*********************** END OF MODAL BUTTON CLICK METHODS ****************************
 
@@ -180,6 +184,7 @@ class Profile extends Component {
             setEditOrganizationFieldsActiveInModal: true,
             setJoinOrganizationFieldsActiveInModal: false,
             setPasswordFieldsActiveInModal: false,
+            successMessage: "",
             organizationMongoIDInModal: organizationClickedOn._id,
             organizationNameInModal: organizationClickedOn.name,
             organizationIDInModal: organizationClickedOn.organizationID
@@ -193,6 +198,7 @@ class Profile extends Component {
             setPasswordFieldsActiveInModal: false,
             setCreateOrganizationFieldsActiveInModal: true,
             setJoinOrganizationFieldsActiveInModal: false,
+            successMessage: "",
             organizationIDInModal: "",
             organizationNameInModal: ""
         });
@@ -205,6 +211,7 @@ class Profile extends Component {
             currentModalTitle: "Join Organization",
             setPasswordFieldsActiveInModal: false,
             setCreateOrganizationFieldsActiveInModal: false,
+            successMessage: "",
             setJoinOrganizationFieldsActiveInModal: true
         })
 
@@ -227,13 +234,15 @@ class Profile extends Component {
                 if (!response.data.error) {
                     console.log("SAVE ORGANIZATION successful in Profile Page, below is response.data");
                     console.log(response.data);
-                    this.setState({ showModal: false });
+                    this.closeModal();
                     this.getOrganizationsOfUserInDB();
                     this.forceUpdate();
 
                 } else {
                     console.log("SAVE ORGANIZATION WAS A FAIL!!!! Below is the response.data");
                     console.log(response.data);
+                    //Now we set the error message in the modal.
+                    this.setState({serverErrorMessage: response.data.error})
                 }
             })
             .catch(err => console.log(err));
@@ -258,13 +267,12 @@ class Profile extends Component {
                     console.log(response.data);
 
                     this.setState({
-                        organizations: response.data.organizations
+                        organizations: response.data.organizations,
                     })
 
                 } else {
                     console.log("getOrganizationsOfUserInDB WAS A FAIL!!!! Below is the response.data");
                     console.log(response.data);
-                    this.setState({ showModal: false });
                 }
             })
             .catch(err => console.log(err));
@@ -288,14 +296,17 @@ class Profile extends Component {
 
                     this.setState({
                         organizations: response.data.organizations,
-                        showModal: false
+                        successMessage: "You successfully joined the organization!"
                     })
+                    this.closeModal();
                     this.getOrganizationsOfUserInDB();
                     this.forceUpdate();
 
                 } else {
                     console.log("attachUserToOrganizationInDB WAS A FAIL!!!! Below is the response.data");
                     console.log(response.data);
+                    //Now we set the error message in the modal.
+                    this.setState({ serverErrorMessage: response.data.error });
                 }
             })
             .catch(err => console.log(err));
@@ -339,7 +350,7 @@ class Profile extends Component {
                 if (!response.data.error) {
                     console.log("SAVE ORGANIZATION successful in Profile Page, below is response.data");
                     console.log(response.data);
-                    this.setState({ showModal: false });
+                    this.closeModal();
                     this.getOrganizationsOfUserInDB();
                     this.forceUpdate();
 
@@ -365,6 +376,7 @@ class Profile extends Component {
                         <div className="jumbotron jumbotron-fluid">
                             <Container id="container" fluid="true">
                                 <h1 className="display-4 BugTrackerTitle">Welcome, {this.props.firstName}!</h1>
+                                <h2 className="display-4 BugTrackerTitle" id="successMessage">{this.state.successMessage}</h2>
                             </Container>
                         </div>
                         <Button onClick={this.handleChangePasswordButtonClick.bind(this)}>Change Password</Button>
@@ -441,7 +453,7 @@ class Profile extends Component {
 
                                         <p>New Password</p>
                                         <Input onBlur={this.formatInput.bind(this)}
-                                            isvalid={this.state.newPassword1and2Valid.toString()}
+                                            isvalid={this.state.newPassword1And2Valid.toString()}
                                             fielderror={this.state.formErrors.newPassword1and2}
                                             formgroupclass={`form-group ${this.errorClass(this.state.formErrors.newPassword1and2)}`}
                                             value={this.state.newPassword1and2}
@@ -449,7 +461,7 @@ class Profile extends Component {
                                             name="newPassword1"></Input>
 
                                         <p>Confirm New Password</p>
-                                        <Input onBlur={this.formatInput.bind(this)} isvalid={this.state.newPassword1and2Valid.toString()}
+                                        <Input onBlur={this.formatInput.bind(this)} isvalid={this.state.newPassword1And2Valid.toString()}
                                             fielderror={this.state.formErrors.newPassword1and2}
                                             formgroupclass={`form-group ${this.errorClass(this.state.formErrors.newPassword1and2)}`}
                                             value={this.state.newPassword2}
@@ -502,7 +514,7 @@ class Profile extends Component {
                                     
                                     
                                     }
-
+                                <span className="help-block serverErrorMessage">{this.state.serverErrorMessage}</span>
                             </Modal.Body>
                             <Modal.Footer>
                                 <Button variant="secondary" onClick={this.closeModal}>

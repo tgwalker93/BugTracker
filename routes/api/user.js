@@ -222,7 +222,7 @@ app.post("/updateUser", function (req, res, next) {
             //User has not been found!! Let client know that no user found in DB
             console.log("user has not been found from updateUser node route, below is req.body");
             console.log(req.body);
-            req.body.error = true;
+            req.body.error = "The password you entered was incorrect. Please try again.";
             req.body.loggedInSuccess = false;
             res.json(req.body);
         }

@@ -32,6 +32,10 @@ class LandingPage extends Component {
         this.setState({ [e.target.id]: e.target.value });
     } 
 
+
+    componentWillReceiveProps(nextProps) {
+        this.setState({ serverErrorMessage: this.props.serverErrorMessage });
+    }
     validateFields() {
         let fieldValidationErrors = this.state.formErrors;
         let emailAddressValid = this.state.emailAddressValid;
@@ -74,7 +78,8 @@ class LandingPage extends Component {
             console.log(this.state.emailAddressValid);
             if(this.state.loginButtonClicked && emailAddressValid){
                 //If the login button is clicked then we want submit LOGIN request, which is different than Create Account request
-                this.props._login(this.state.emailAddress, this.state.password)
+                this.props._login(this.state.emailAddress, this.state.password);
+
             }else if(this.state.loginOrCreateAccountButtonClicked && !this.state.loginButtonClicked && emailAddressValid && firstNameValid && lastNameValid && passwordValid){
                 //If Create Account button was clicked, then we want to post the user to the database.
                 this.saveUser();
@@ -114,32 +119,25 @@ class LandingPage extends Component {
         event.preventDefault();
         this.setState({ loginOrCreateAccountButtonClicked: true, loginButtonClicked: true, forgotPasswordButtonClicked: false,
                         emailAddressValid: true, firstNameValid: true, lastNameValid: true, passwordValid: true,
-                        formErrors: { firstName: "", lastName: "", emailAddress: "", password: "" }
+            formErrors: { firstName: "", lastName: "", emailAddress: "", password: "", serverErrorMessage: "" }
         })
-
+        
     }
     handleCreateAccountButtonClick = event => {
         event.preventDefault();
         this.setState({ loginOrCreateAccountButtonClicked: true, loginButtonClicked: false, forgotPasswordButtonClicked: false,
                         emailAddressValid: true, firstNameValid: true, lastNameValid: true, passwordValid: true,
-                        formErrors: { firstName: "", lastName: "", emailAddress: "", password: "" }        
+            formErrors: { firstName: "", lastName: "", emailAddress: "", password: "", serverErrorMessage: "" }        
         })
-
     }
 
     handleForgotPasswordButtonClick = event => {
         event.preventDefault();
         this.setState({ loginOrCreateAccountButtonClicked: false, loginButtonClicked: false, forgotPasswordButtonClicked: true,
                         emailAddressValid: true, firstNameValid: true, lastNameValid: true, passwordValid: true,
-                        formErrors: { firstName: "", lastName: "", emailAddress: "", password: "" }       
+                        formErrors: { firstName: "", lastName: "", emailAddress: "", password: "", serverErrorMessage:"" }       
         })
     }
-
-    createAccount = event => {
-        event.preventDefault();
-        this.setState({ loginButtonClicked: false});
-
-    };
     // END of BUTTON CLICK METHODS
 
     sendForgotPasswordEmail() {
@@ -261,8 +259,9 @@ class LandingPage extends Component {
 
                                     {this.state.loginButtonClicked ?
                                         <div>
-                                            <h3 id="formFooterLink" class="formFooterLink" onClick={this.handleCreateAccountButtonClick.bind(this)}>Create Account instead?</h3>
-                                            <h3 id="formFooterLink" class="formFooterLink"onClick={this.handleForgotPasswordButtonClick.bind(this)}>Forgot Password?</h3>
+                                            <h3 id="formFooterLink" className="formFooterLink" 
+                                            onClick={this.handleCreateAccountButtonClick.bind(this)}>Create Account instead?</h3>
+                                            <h3 id="formFooterLink" className="formFooterLink" onClick={this.handleForgotPasswordButtonClick.bind(this)}>Forgot Password?</h3>
                                         </div>
                                         :
                                         <div>
@@ -274,7 +273,6 @@ class LandingPage extends Component {
                                 </form>
                                 <span className="help-block serverErrorMessage">{this.state.serverErrorMessage}</span>
                                 <br />
-                                <span className="help-block serverErrorMessage">{this.props.serverErrorMessage}</span>
                             </div>
                             : 
 
@@ -289,8 +287,8 @@ class LandingPage extends Component {
                                             <Input onBlur={this.formatInput.bind(this)} isvalid={this.state.emailAddressValid.toString()} fielderror={this.state.formErrors.emailAddress} formgroupclass={`form-group ${this.errorClass(this.state.formErrors.emailAddress)}`} value={this.state.emailAddress} id="emailAddress" onChange={this.handleChange.bind(this)} name="emailAddress"></Input>
                                             <Button onClick={this.handleFormSubmit.bind(this)}> Submit </Button>
                                             
-                                            <h3 id="formFooterLink" class="formFooterLink" onClick={this.handleLoginButtonClick.bind(this)}>Login instead?</h3>
-                                            <h3 id="formFooterLink" class="formFooterLink" onClick={this.handleCreateAccountButtonClick.bind(this)}>Create Account instead?</h3>
+                                            <h3 id="formFooterLink" className="formFooterLink" onClick={this.handleLoginButtonClick.bind(this)}>Login instead?</h3>
+                                            <h3 id="formFooterLink" className="formFooterLink" onClick={this.handleCreateAccountButtonClick.bind(this)}>Create Account instead?</h3>
                                         </div>
                                             :                                                                                
                                              <div>                                

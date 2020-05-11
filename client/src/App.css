@@ -17,6 +17,11 @@ body {
 .jumbotron {
   background-color: #d2ecd1 !important;
 }
+
+.formFooterLink:hover {
+    cursor:pointer !important;
+    color:blue !important;
+}
   
 
 
