@@ -360,7 +360,7 @@ class Profile extends Component {
     }
 
     handleLogoutButtonClick = () => {
-
+        window.location.reload(false);
     }
     
     

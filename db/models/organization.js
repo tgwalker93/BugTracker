@@ -16,6 +16,7 @@ const OrganizationSchema = new Schema({
         type: String,
         required: true   
     },
+    //String of first + last name of every user in organization
     users: [{
         type: String,
         required: false

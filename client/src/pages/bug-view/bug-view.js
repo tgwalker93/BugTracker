@@ -284,6 +284,9 @@ class BugViewPage extends Component {
     createNewBugButton = () => {
         this.setState({ showModal: true, currentModalTitle: "Create Bug", isNewBug: true, bugTitleInModal: "", bugDescriptionInModal: "", bugUserAssignedInModal:"", bugStatusInModal:"" });
     }
+    handleLogoutButtonClick = () => {
+        window.location.reload(false);
+    }
     // ******************** END OF INITIAL BUTTON CLICK METHODS ******************
 
 
@@ -352,9 +355,6 @@ class BugViewPage extends Component {
             this.updateBugInDB();
             this.forceUpdate();
         });
-
-    }
-    handleLogoutButtonClick = () => {
 
     }
     render() {

@@ -36,9 +36,6 @@ class LandingPage extends Component {
     componentWillReceiveProps(nextProps) {
         this.setState({ serverErrorMessage: this.props.serverErrorMessage });
     }
-    componentWillMount() {
-        console.log("IM IN THE LANDING PAGE??");
-    }
     //We use this method for validating all the fields.
     validateFields() {
         let fieldValidationErrors = this.state.formErrors;
