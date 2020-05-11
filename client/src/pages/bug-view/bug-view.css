@@ -44,6 +44,9 @@
     width: 50px !important;
 }
 
+#organizationNameInBugTitle, .noResultsMessage, .completedBugsTitle, .activeBugsTitle {
+    text-align: center;
+}
 
 
 

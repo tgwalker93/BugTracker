@@ -29,7 +29,7 @@ class Profile extends Component {
             organizationNameInModal: "",
             organizationIDInModal: "",
             organizationMongoIDInModal: "",
-            oldPasswordValid: false,
+            oldPasswordValid: true,
             newPassword1and2Valid: false,
             organizationNameValid: false,
             organizationIDValid: false,
@@ -65,31 +65,64 @@ class Profile extends Component {
 
     validateFields() {
         let fieldValidationErrors = this.state.formErrors;
-        let oldPasswordValid = this.state.oldPassword;
         let newPassword1and2Valid = this.state.newPassword1Valid;
+        let organizationNameValid =  this.state.organizationNameValid;
+        let organizationIDValid = this.state.organizationIDValid;
 
 
-        //Validating that old password is greater than 6 characters. We'll check the DB to see if this is accurate. Password is NEVER sent to client. 
-        oldPasswordValid = this.state.oldPassword >= 6;
-        fieldValidationErrors.oldPassword = oldPasswordValid ? "" : "Old password must be atleast 6 characters long.";
 
+        console.log("newpassword1 is: " + this.state.newPassword1);
+        console.log("newPassword2 is: " + this.state.newPassword2);
 
         //Validating between the new password field and "confirm password" field that they match and are greather than or equal to 6 characters
         newPassword1and2Valid = this.state.newPassword1 === this.state.newPassword2 && this.state.newPassword1.length >= 6;
-        fieldValidationErrors.newPassword1and2Valid = "New password doesn't match or your password is less than 6 characters long.";
-   
+        fieldValidationErrors.newPassword1and2 = "New password doesn't match or your password is less than 6 characters long.";
 
+        //Validating that organization is greater than 3 characters
+        organizationNameValid = this.state.organizationNameValid.length > 3;
+        fieldValidationErrors.organizationName = "Organization Name must have atleast three characters.";
+
+        //Validating that organization ID is greater than 6 characters
+        organizationIDValid = this.state.organizationIDInModal.length > 6;
+        fieldValidationErrors.organizationID = "Organization ID must have atleast six characters.";
+
+
+
+        console.log("organizationIDValid is: " + organizationIDValid);
+        console.log("organizationNameValid: " + organizationNameValid);
+        console.log("password1And2Valid: "+ newPassword1and2Valid);
         //TODO --- HANDLE FORM VALIDATION
 
-        // this.setState({
-        //     formErrors: fieldValidationErrors,
-        //     oldPasswordValid: oldPasswordValid,
-        //     newPassword1and2Valid: newPassword1and2Valid
-        // }, () => {
-        //     this.attemptToSavePasswordToDB();
-        // });
-    }
+        this.setState({
+            formErrors: fieldValidationErrors,
+            newPassword1and2Valid: newPassword1and2Valid,
+            organizationIDValid: organizationIDValid,
+            organizationNameValid: organizationNameValid
+        }, () => {
+                if (this.state.setJoinOrganizationFieldsActiveInModal) {
+                    //for JOIN organization
+                    if (organizationIDValid){
+                     this.attachUserToOrganizationInDB();
+                    }
+                } else if (this.state.setCreateOrganizationFieldsActiveInModal) {
+                    //For CREATE organization
+                    if(organizationNameValid && organizationIDValid){
+                        this.saveOrganizationInDB();
+                    }
+                } else if (this.state.setEditOrganizationFieldsActiveInModal) {
+                    //For UPDATE Organization
+                    if(organizationNameValid && organizationIDValid){
 
+                        this.updateOrganizationInDB();
+                    }
+                } else if (this.state.setPasswordFieldsActiveInModal) {
+                    //For UPDATE password
+                    if (newPassword1and2Valid){     
+                        this.updatePasswordInDB();
+                    }
+                }
+        });
+    }
 
     
     handleChangePasswordButtonClick = event => {
@@ -130,7 +163,9 @@ class Profile extends Component {
         
     }
     closeModal = () => {
-        this.setState({ showModal: false });
+        this.setState({ showModal: false, organizationIDValid: true,
+        organizationNameValid: true, newPassword1and2Valid: true, 
+            formErrors: { oldPassword: "", newPassword1and2: "", organizationName: "", organizationID: "" } });
     }
     //*********************** END OF MODAL BUTTON CLICK METHODS ****************************
 
@@ -156,7 +191,7 @@ class Profile extends Component {
             currentModalTitle: "Create Organization",
             setPasswordFieldsActiveInModal: false,
             setCreateOrganizationFieldsActiveInModal: true,
-            setJoinOrganizationFieldsActiveInmodal: false,
+            setJoinOrganizationFieldsActiveInModal: false,
             organizationIDInModal: "",
             organizationNameInModal: ""
         });
@@ -316,22 +351,7 @@ class Profile extends Component {
     }
 
     handleSubmitButtonInModalClick = () => {
-        if(this.state.setJoinOrganizationFieldsActiveInModal)
-        {
-            //for JOIN organization
-            this.attachUserToOrganizationInDB();
-        }else if(this.state.setCreateOrganizationFieldsActiveInModal)
-        {
-            //For CREATE organization
-            this.saveOrganizationInDB();
-        }else if (this.state.setEditOrganizationFieldsActiveInModal) {
-            //For UPDATE Organization
-            this.updateOrganizationInDB();
-        }else if(this.state.setPasswordFieldsActiveInModal)
-        {
-            //For UPDATE password
-            this.updatePasswordInDB();
-        }
+        this.validateFields();
     }
     
     
@@ -371,7 +391,7 @@ class Profile extends Component {
                                                 <td className="organizationTable_td">
                                                     
                                                     
-                                                    <Link to={{pathname: "/bug-view", state: {organizationMongoID: organization._id}}} className="log" ><Button>View Bugs</Button></Link>
+                                                    <Link to={{pathname: "/bug-view", state: {organizationMongoID: organization._id, organizationName: organization.name}}} className="log" ><Button>View Bugs</Button></Link>
                                                     </td>
                                                 <td id="editColumn" className="organizationTable_td">
                                                     {this.props.mongoID === organization.userWhoCreatedOrgMongoID ?
@@ -421,15 +441,15 @@ class Profile extends Component {
                                         <p>New Password</p>
                                         <Input onBlur={this.formatInput.bind(this)}
                                             isvalid={this.state.newPassword1and2Valid.toString()}
-                                            fielderror={this.state.formErrors.newPassword1}
+                                            fielderror={this.state.formErrors.newPassword1and2}
                                             formgroupclass={`form-group ${this.errorClass(this.state.formErrors.newPassword1and2)}`}
-                                            value={this.state.newPassword1}
+                                            value={this.state.newPassword1and2}
                                             id="newPassword1" onChange={this.handleChange.bind(this)}
                                             name="newPassword1"></Input>
 
                                         <p>Confirm New Password</p>
                                         <Input onBlur={this.formatInput.bind(this)} isvalid={this.state.newPassword1and2Valid.toString()}
-                                            fielderror={this.state.formErrors.newPassword2}
+                                            fielderror={this.state.formErrors.newPassword1and2}
                                             formgroupclass={`form-group ${this.errorClass(this.state.formErrors.newPassword1and2)}`}
                                             value={this.state.newPassword2}
                                             id="newPassword2"
@@ -444,7 +464,7 @@ class Profile extends Component {
                                             <p>Please enter the Organization ID of the organization you wish to join:</p>
                                             <Input onBlur={this.formatInput.bind(this)}
                                                 isvalid={this.state.organizationIDValid.toString()}
-                                                fielderror={this.state.formErrors.organizationIDInModal}
+                                                    fielderror={this.state.formErrors.organizationID}
                                                 formgroupclass={`form-group ${this.errorClass(this.state.formErrors.organizationID)}`}
                                                 value={this.state.organizationIDInModal}
                                                 id="organizationIDInModal" onChange={this.handleChange.bind(this)}
@@ -456,7 +476,7 @@ class Profile extends Component {
                                         <p>Organization Name</p>
                                         <Input onBlur={this.formatInput.bind(this)}
                                             isvalid={this.state.organizationNameValid.toString()}
-                                            fielderror={this.state.formErrors.oldPassword}
+                                            fielderror={this.state.formErrors.organizationName}
                                             formgroupclass={`form-group ${this.errorClass(this.state.formErrors.organizationName)}`}
                                             value={this.state.organizationNameInModal}
                                             id="organizationNameInModal"
@@ -466,7 +486,7 @@ class Profile extends Component {
                                         <p>Organization ID (Use this number to invite people)</p>
                                         <Input onBlur={this.formatInput.bind(this)}
                                             isvalid={this.state.organizationIDValid.toString()}
-                                            fielderror={this.state.formErrors.organizationIDInModal}
+                                            fielderror={this.state.formErrors.organizationID}
                                             formgroupclass={`form-group ${this.errorClass(this.state.formErrors.organizationID)}`}
                                             value={this.state.organizationIDInModal}
                                             id="organizationIDInModal" onChange={this.handleChange.bind(this)}
@@ -481,9 +501,6 @@ class Profile extends Component {
                                     
                                     
                                     }
-
-
-
 
                             </Modal.Body>
                             <Modal.Footer>

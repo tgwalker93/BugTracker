@@ -38,6 +38,7 @@ class BugViewPage extends Component {
             userFilter: "",
             statusFilter: "",
             organizationMongoID: "",
+            organizationNameInTitle: "",
             showActiveBugs: true,
             showCompletedBugs: false,
             isCurrentBugCompleted: false
@@ -444,6 +445,8 @@ class BugViewPage extends Component {
             currentBugIndex: bugClickedOn.id,
             bugTitleInModal: bugClickedOn.bugTitle, 
             bugDescriptionInModal: bugClickedOn.bugDescription, 
+            bugStatusInModal: bugClickedOn.status,
+            bugUserAssignedInModal: bugClickedOn.userAssigned,
             isNewBug: false, 
             selectedBug: bugClickedOn });
         this.renderBugComments(bugClickedOn);
@@ -465,7 +468,7 @@ class BugViewPage extends Component {
         console.log("Component Did Mount has been called");
         console.log("BELOW IS THE PASSED PROPS STATE");
         console.log(this.props.location.state);
-        this.setState({ organizationMongoID: this.props.location.state.organizationMongoID }, () => {
+        this.setState({ organizationMongoID: this.props.location.state.organizationMongoID, organizationNameInTitle: this.props.location.state.organizationName }, () => {
             this.getBugsFromDB();
         });
 
@@ -603,7 +606,8 @@ class BugViewPage extends Component {
                     <Col size="sm-12">
                         <div className="jumbotron jumbotron-fluid">
                             <Container id="container" fluid="true">
-                                <h1 className="display-4 BugTrackerTitle">View Bugs</h1>
+                                <h1 className="display-4 BugtrackerTitle" id="organizationNameInBugTitle">{this.state.organizationNameInTitle}</h1>
+                                <h2 className="display-4 BugTrackerTitle">View Bugs</h2>
                             </Container>
                         </div>
                         <br />
@@ -657,6 +661,7 @@ class BugViewPage extends Component {
 
                         {this.state.showActiveBugs ?                   
                        <div>
+                                <h1 className="activeBugsTitle">Active Bugs</h1>
                                 {this.state.bugData.length ? (
                                     <table id="bugViewTable_Table" className="table table-hover bugViewTable_Table">
                                         <thead id="bugViewTable_head" className="thead-dark">
@@ -681,9 +686,7 @@ class BugViewPage extends Component {
                                                                 />
                                                                 <span className="checkmark"></span>
                                                             </label>
-
-
-                                                        </td>
+                                                     </td>
                                                         <td className="bugViewTable_td">{bug.bugTitle}</td>
                                                         <td id="userAssignedColumn" className="bugViewTable_td">{bug.userAssigned}</td>
                                                         <td id="statusColumn" className="bugViewTable_td">{bug.status}</td>
@@ -700,7 +703,7 @@ class BugViewPage extends Component {
                                     </table>
 
 
-                                ) : (<h3> No Results to Display </h3>)} 
+                                ) : (<h3 className="noResultsMessage"> No Results to Display </h3>)} 
                        </div>
                         
                         
@@ -719,7 +722,8 @@ class BugViewPage extends Component {
                             
                             
                             <div>
-                                <h1>Completed Bugs</h1>
+                                <hr />
+                                <h1 className="completedBugsTitle">Completed Bugs</h1>
                                 {this.state.completedBugData.length ? (
                                     <div>
                                     <table id="bugViewTable_Table" className="table table-hover bugViewTable_Table">
@@ -758,7 +762,7 @@ class BugViewPage extends Component {
                                     </table>
                                     </div>
 
-                                ) : (<h3> No Results to Display </h3>)} 
+                                ) : (<h3 className="noResultsMessage"> No Results to Display </h3>)} 
 
 
                             </div>
@@ -864,9 +868,6 @@ class BugViewPage extends Component {
                                 <Button variant="secondary" onClick={this.closeModal}>
                                     Close
                                   </Button>
-                                {/* <Button variant="primary" onClick={this.updateOrCreateBug}>
-                                    Save Changes
-                              </Button> */}
                                 <Button variant="primary" onClick={this.handleFormSubmit}>
                                     Save Changes
                               </Button> 
