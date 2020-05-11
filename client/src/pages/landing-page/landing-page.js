@@ -156,7 +156,7 @@ class LandingPage extends Component {
                 if (!response.data.error) {
                     console.log("send forgot password was successful, i'm back at landing-page.js, in API.sendForgotPasswordEmail");
                     console.log(response);
-                    this.setState({ serverErrorMessage: "An email has been sent to that email."});
+                    this.setState({ serverErrorMessage: "An email has been sent."});
                 } else {
                     console.log("error found!!!");
                     console.log(response);

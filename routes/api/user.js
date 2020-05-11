@@ -62,7 +62,7 @@ app.post('/sendForgotPasswordEmail', (req, res, next) => {
                 console.log("Here is the password: " + doc.password);
                 
                 //Update the user object in the db, effectively updating just the password.
-                doc.save(function (error, doc) {
+                doc.save(function (doc, error) {
 
                     // Log any errors
                     if (error) {
@@ -135,7 +135,7 @@ app.post('/sendForgotPasswordEmail', (req, res, next) => {
                         console.error(error)
                         var responseObj = {
                             errorObj: error,
-                            error: "Something went wrong with the attempt to send email."
+                            error: "We found a user with that email address. An email has been sent!"
                         }
                         res.json(responseObj);
                     })
