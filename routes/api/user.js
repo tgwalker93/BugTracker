@@ -160,7 +160,7 @@ app.post("/login",
         passport.authenticate("local", {
             successRedirect: '/profile',
             failureRedirect: '/'
-        }, function (err, user, info) {
+        }, function (user, err, info) {
 
             // handle succes or failure
             console.log("I SUCCESSFULLY CALLED post/Login from user route in backend. below is user");
