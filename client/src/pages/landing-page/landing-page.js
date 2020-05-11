@@ -187,7 +187,8 @@ class LandingPage extends Component {
 
                     if (!response.data.error) {
                         //userObj.userId = response.data.doc._id;
-
+                        console.log("here's userObj");
+                        console.log(userObj);
 
                         //Now that the user account is created, let's automatically login the user in
                          this.props._login(this.state.emailAddress, this.state.password, userObj);

@@ -160,7 +160,7 @@ app.post("/login",
         passport.authenticate("local", {
             successRedirect: '/profile',
             failureRedirect: '/'
-        }, function (user, err, info) {
+        }, function (err, user, info) {
 
             // handle succes or failure
             console.log("I SUCCESSFULLY CALLED post/Login from user route in backend. below is user");
@@ -171,6 +171,8 @@ app.post("/login",
             if(err){
                 req.body.error = "Something went wrong with logging in."
                 console.log(req.body);
+                console.log("BELOW IS ERR");
+                console.log(err);
                 res.json(req.body);
             }
             else if(user === false){
