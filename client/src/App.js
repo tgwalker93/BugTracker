@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { BrowserRouter as Router, Route, Switch, Redirect } from "react-router-dom";
 import LandingPage from "./pages/landing-page";
 import BugView from "./pages/bug-view";
-import CreateBug from "./pages/create-bug";
 import Profile from "./pages/profile";
 import API from "./utils/API";
 import { withRouter } from 'react-router';
@@ -120,7 +119,6 @@ class App extends Component {
                 serverErrorMessage={this.state.serverErrorMessage}
               />} />
           <Route exact path="/bug-view" component={BugView} />
-          <Route exact path="/create-bug" component={CreateBug} />
               <Route exact path="/profile" render={() => <Profile loggedIn={this.state.loggedIn} username={this.state.username} mongoID={this.state.mongoID} firstName={this.state.firstName}/>} />
 
           <Route exact path="/" render={() => (

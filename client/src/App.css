@@ -23,7 +23,15 @@ body {
     color:blue !important;
 }
   
-
+#bugModalXButton {
+    line-height: 19px;
+    background-color: #fe0000 !important;
+    margin-top: 1px;
+    margin-right: 2px;
+    position: absolute;
+    top: 0;
+    right: 0;
+}
 
   
 

@@ -22,6 +22,7 @@ class Profile extends Component {
             setCreateOrganizationFieldsActiveInModal: false,
             setJoinOrganizationFieldsActiveInModal: false,
             setEditOrganizationFieldsActiveInModal: false,
+            setConfirmationBoxActiveInModal: false,
             formErrors: { oldPassword: "", newPassword1and2:"", organizationName:"", organizationID:"" },
             oldPassword: "",
             newPassword1: "",
@@ -34,6 +35,7 @@ class Profile extends Component {
             organizationNameValid: false,
             organizationIDValid: false,
             showModal: false,
+            formSubmitButtonText: "Submit",
             successMessage: "",
             serverErrorMessage:"",
             currentModalTitle: "",
@@ -169,7 +171,7 @@ class Profile extends Component {
         this.setState({ showModal: false, organizationIDValid: true,
         organizationNameValid: true, oldPasswordValid: true, newPassword1Valid: true, newPassword2Valid: true,
             organizationNameInModal: "", organizationIDInModal: "", oldPassword: "", newPassword: "", newPassword2: "", serverErrorMessage:"",
-            formErrors: { oldPassword: "", newPassword1and2: "", organizationName: "", organizationID: "", serverErrorMessage:"" } });
+            formErrors: { oldPassword: "", newPassword1and2: "", organizationName: "", organizationID: "", serverErrorMessage: "", formSubmitButtonText: "Submit" } });
     }
     //*********************** END OF MODAL BUTTON CLICK METHODS ****************************
 
@@ -184,6 +186,7 @@ class Profile extends Component {
             setEditOrganizationFieldsActiveInModal: true,
             setJoinOrganizationFieldsActiveInModal: false,
             setPasswordFieldsActiveInModal: false,
+            setConfirmationBoxActiveInModal: false,
             successMessage: "",
             organizationMongoIDInModal: organizationClickedOn._id,
             organizationNameInModal: organizationClickedOn.name,
@@ -198,6 +201,7 @@ class Profile extends Component {
             setPasswordFieldsActiveInModal: false,
             setCreateOrganizationFieldsActiveInModal: true,
             setJoinOrganizationFieldsActiveInModal: false,
+            setConfirmationBoxActiveInModal: false,
             successMessage: "",
             organizationIDInModal: "",
             organizationNameInModal: ""
@@ -211,10 +215,23 @@ class Profile extends Component {
             currentModalTitle: "Join Organization",
             setPasswordFieldsActiveInModal: false,
             setCreateOrganizationFieldsActiveInModal: false,
+            setConfirmationBoxActiveInModal: false,
             successMessage: "",
             setJoinOrganizationFieldsActiveInModal: true
         })
 
+    }
+    handleDeleteOrLeaveButtonClick(organization) {
+        this.setState({ setConfirmationBoxActiveInModal: true, showModal: true, currentOrganization: organization,
+            currentModalTitle: "",
+            setPasswordFieldsActiveInModal: false,
+            setCreateOrganizationFieldsActiveInModal: false,
+            setJoinOrganizationFieldsActiveInModal: false,
+            formSubmitButtonText: "Confirm",
+            successMessage: "",
+            organizationIDInModal: "",
+            organizationNameInModal: ""    
+        });
     }
 
     //*** METHODS BELOW RELATED TO DB WITH ORGANIZATIONS */ */
@@ -326,7 +343,7 @@ class Profile extends Component {
         }
         API.deleteOrganizationInDB(organizationObj)
             .then(res => {
-
+                this.setState({currentOrganization: ""});
                 this.getOrganizationsOfUserInDB();
                 this.forceUpdate();
             })
@@ -363,7 +380,15 @@ class Profile extends Component {
     }
 
     handleSubmitButtonInModalClick = () => {
-        this.validateFields();
+        if(this.state.setConfirmationBoxActiveInModal){
+            //In this case we are confirming to delete or leave an organization.
+            this.setState({setConfirmationBoxActiveInModal: false, showModal: false}, () => {
+                    this.handleDeleteOrganizationInDB(this.state.currentOrganization);
+            }
+            )
+        }else {
+            this.validateFields();
+        }
     }
     
     
@@ -416,9 +441,10 @@ class Profile extends Component {
                                                 </td>
                                                 <td id="deleteColumn" className="organizationTable_td">
                                                     {this.props.mongoID === organization.userWhoCreatedOrgMongoID ?
-                                                        <Button variant="primary" onClick={() => this.handleDeleteOrganizationInDB(organization)}>Delete</Button> 
+
+                                                        < Button variant="primary" onClick={() => this.handleDeleteOrLeaveButtonClick(organization)}>Delete</Button> 
                                                         : 
-                                                        <Button variant="primary" onClick={() => this.handleDeleteOrganizationInDB(organization)}>Leave</Button> 
+                                                        <Button variant="primary" onClick={() => this.handleDeleteOrLeaveButtonClick(organization)}>Leave</Button> 
                                                     }
                                                      </td>
                                             </tr>
@@ -439,89 +465,88 @@ class Profile extends Component {
                             </Modal.Header>
                             <Modal.Body>
 
-                                {this.state.setPasswordFieldsActiveInModal ?
+                                {this.state.setConfirmationBoxActiveInModal ?
+                                    <h1 id="confirmationHeader">Are you sure?</h1>   
+                                :
                                     <div>
-                                        <p>Old Password</p>
-                                        <Input onBlur={this.formatInput.bind(this)}
-                                            isvalid={this.state.oldPasswordValid.toString()}
-                                            fielderror={this.state.formErrors.oldPassword}
-                                            formgroupclass={`form-group ${this.errorClass(this.state.formErrors.oldPassword)}`}
-                                            value={this.state.oldPassword}
-                                            id="oldPassword"
-                                            onChange={this.handleChange.bind(this)}
-                                            name="oldPassword"></Input>
+                                        {this.state.setPasswordFieldsActiveInModal ?
+                                            <div>
+                                                <Input type="password" label="Old Password" onBlur={this.formatInput.bind(this)}
+                                                    isvalid={this.state.oldPasswordValid.toString()}
+                                                    fielderror={this.state.formErrors.oldPassword}
+                                                    formgroupclass={`form-group ${this.errorClass(this.state.formErrors.oldPassword)}`}
+                                                    value={this.state.oldPassword}
+                                                    id="oldPassword"
+                                                    onChange={this.handleChange.bind(this)}
+                                                    name="oldPassword"></Input>
 
-                                        <p>New Password</p>
-                                        <Input onBlur={this.formatInput.bind(this)}
-                                            isvalid={this.state.newPassword1And2Valid.toString()}
-                                            fielderror={this.state.formErrors.newPassword1and2}
-                                            formgroupclass={`form-group ${this.errorClass(this.state.formErrors.newPassword1and2)}`}
-                                            value={this.state.newPassword1and2}
-                                            id="newPassword1" onChange={this.handleChange.bind(this)}
-                                            name="newPassword1"></Input>
+                                                <Input type="password" label="New Password" onBlur={this.formatInput.bind(this)}
+                                                    isvalid={this.state.newPassword1And2Valid.toString()}
+                                                    fielderror={this.state.formErrors.newPassword1and2}
+                                                    formgroupclass={`form-group ${this.errorClass(this.state.formErrors.newPassword1and2)}`}
+                                                    value={this.state.newPassword1and2}
+                                                    id="newPassword1" onChange={this.handleChange.bind(this)}
+                                                    name="newPassword1"></Input>
 
-                                        <p>Confirm New Password</p>
-                                        <Input onBlur={this.formatInput.bind(this)} isvalid={this.state.newPassword1And2Valid.toString()}
-                                            fielderror={this.state.formErrors.newPassword1and2}
-                                            formgroupclass={`form-group ${this.errorClass(this.state.formErrors.newPassword1and2)}`}
-                                            value={this.state.newPassword2}
-                                            id="newPassword2"
-                                            onChange={this.handleChange.bind(this)}
-                                            name="newPassword2"></Input>
+                                                <Input type="password" label="Confirm New Password" onBlur={this.formatInput.bind(this)} isvalid={this.state.newPassword1And2Valid.toString()}
+                                                    fielderror={this.state.formErrors.newPassword1and2}
+                                                    formgroupclass={`form-group ${this.errorClass(this.state.formErrors.newPassword1and2)}`}
+                                                    value={this.state.newPassword2}
+                                                    id="newPassword2"
+                                                    onChange={this.handleChange.bind(this)}
+                                                    name="newPassword2"></Input>
 
-                                    </div>
-                                    :
-                                    <div>
-                                        {this.state.setJoinOrganizationFieldsActiveInModal ?
-                                        <div>
-                                            <p>Please enter the Organization ID of the organization you wish to join:</p>
-                                            <Input onBlur={this.formatInput.bind(this)}
-                                                isvalid={this.state.organizationIDValid.toString()}
-                                                    fielderror={this.state.formErrors.organizationID}
-                                                formgroupclass={`form-group ${this.errorClass(this.state.formErrors.organizationID)}`}
-                                                value={this.state.organizationIDInModal}
-                                                id="organizationIDInModal" onChange={this.handleChange.bind(this)}
-                                                name="organizationIDInModal"></Input>
-                                            
-                                        </div>
-                                        :
-                                        <div>
-                                        <p>Organization Name</p>
-                                        <Input onBlur={this.formatInput.bind(this)}
-                                            isvalid={this.state.organizationNameValid.toString()}
-                                            fielderror={this.state.formErrors.organizationName}
-                                            formgroupclass={`form-group ${this.errorClass(this.state.formErrors.organizationName)}`}
-                                            value={this.state.organizationNameInModal}
-                                            id="organizationNameInModal"
-                                            onChange={this.handleChange.bind(this)}
-                                            name="organizationNameInModal"></Input>
+                                            </div>
+                                            :
+                                            <div>
+                                                {this.state.setJoinOrganizationFieldsActiveInModal ?
+                                                    <div>
+                                                        <Input label="Please enter the Organization ID of the organization you wish to join:" onBlur={this.formatInput.bind(this)}
+                                                            isvalid={this.state.organizationIDValid.toString()}
+                                                            fielderror={this.state.formErrors.organizationID}
+                                                            formgroupclass={`form-group ${this.errorClass(this.state.formErrors.organizationID)}`}
+                                                            value={this.state.organizationIDInModal}
+                                                            id="organizationIDInModal" onChange={this.handleChange.bind(this)}
+                                                            name="organizationIDInModal"></Input>
 
-                                        <p>Organization ID (Use this number to invite people)</p>
-                                        <Input onBlur={this.formatInput.bind(this)}
-                                            isvalid={this.state.organizationIDValid.toString()}
-                                            fielderror={this.state.formErrors.organizationID}
-                                            formgroupclass={`form-group ${this.errorClass(this.state.formErrors.organizationID)}`}
-                                            value={this.state.organizationIDInModal}
-                                            id="organizationIDInModal" onChange={this.handleChange.bind(this)}
-                                            name="organizationIDInModal"></Input>
-                                        </div>
+                                                    </div>
+                                                    :
+                                                    <div>
+                                                        <Input label="Organization Name" onBlur={this.formatInput.bind(this)}
+                                                            isvalid={this.state.organizationNameValid.toString()}
+                                                            fielderror={this.state.formErrors.organizationName}
+                                                            formgroupclass={`form-group ${this.errorClass(this.state.formErrors.organizationName)}`}
+                                                            value={this.state.organizationNameInModal}
+                                                            id="organizationNameInModal"
+                                                            onChange={this.handleChange.bind(this)}
+                                                            name="organizationNameInModal"></Input>
+
+                                                        <Input label="Organization ID (Use this number to invite people)" onBlur={this.formatInput.bind(this)}
+                                                            isvalid={this.state.organizationIDValid.toString()}
+                                                            fielderror={this.state.formErrors.organizationID}
+                                                            formgroupclass={`form-group ${this.errorClass(this.state.formErrors.organizationID)}`}
+                                                            value={this.state.organizationIDInModal}
+                                                            id="organizationIDInModal" onChange={this.handleChange.bind(this)}
+                                                            name="organizationIDInModal"></Input>
+                                                    </div>
+
+                                                }
+
+                                            </div>
 
                                         }
 
                                     </div>
-                                    
-                                    
-                                    
-                                    
-                                    }
+                                }
+                        
                                 <span className="help-block serverErrorMessage">{this.state.serverErrorMessage}</span>
                             </Modal.Body>
                             <Modal.Footer>
                                 <Button variant="secondary" onClick={this.closeModal}>
-                                    Close
+                                    Cancel
                                   </Button>
                                 <Button variant="primary" onClick={this.handleSubmitButtonInModalClick.bind(this)}>
-                                Save Changes
+                                {this.state.formSubmitButtonText}
                                 </Button>
 
                             </Modal.Footer>

@@ -16,3 +16,7 @@
     text-align: center;
 
 }
+#confirmationHeader {
+    text-align: center !important;
+    color: black !important;
+}
