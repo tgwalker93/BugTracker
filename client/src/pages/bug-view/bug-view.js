@@ -203,6 +203,7 @@ class BugViewPage extends Component {
         let currentBug = this.state.bugData[this.state.currentBugIndex];
         if(currentBug){
             currentBug.text = this.state.currentBugCommentInModal;
+            currentBug.userWhoMadeComment = this.state.userFirstName + " " + this.state.userLastName;
        
         if (this.state.currentBugCommentInModal) {
             API.saveBugComment(currentBug)
@@ -685,7 +686,7 @@ class BugViewPage extends Component {
                                                             <div>
                                                                 <Button className='btn btn-danger bugComment-delete insideNote' id='cancelInsideNote' onClick={boundBugCommentClick}> X </Button>
                                                            
-                                                                <BugCommentPanel key={bugComment._id} text={this.state.userFirstName + " " + this.state.userLastName + ": " + bugComment.text} date={bugComment.timestamp}>
+                                                                <BugCommentPanel key={bugComment._id} text={bugComment.userWhoMadeComment + ": " + bugComment.text} date={bugComment.timestamp}>
 
                                                             </BugCommentPanel>
                                                             </div>

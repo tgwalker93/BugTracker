@@ -219,6 +219,7 @@ app.post("/saveBugComment", function (req, res) {
     let result = {
         title: req.body.text,
         text: req.body.text,
+        userWhoMadeComment: req.body.userWhoMadeComment,
         timestamp: finalDateFormat
     }
 
